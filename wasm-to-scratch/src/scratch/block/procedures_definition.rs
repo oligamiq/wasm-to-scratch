@@ -1,6 +1,8 @@
 use crate::util::wrap_by_len;
 
 use crate::scratch::generate_id::generate_id;
+use sb_itchy::block::{BlockInputBuilder, BlockNormalBuilder};
+use sb_itchy::stack::StackBuilder;
 use sb_sbity::block::BlockField::WithId;
 use sb_sbity::block::BlockMutationEnum::ProceduresPrototype;
 use sb_sbity::block::UidOrValue;
@@ -23,6 +25,7 @@ pub fn generate_func_block(
     blocks_y: &mut i64,
     (i, len): (&mut usize, usize),
 ) -> StringHashMap<Block> {
+
     let (wrapper_blocks, wrapper_id) =
         generate_func_block_impl(function, func_type, wrap_by_len(*i, len), left_x, blocks_y);
     *i += 1;
@@ -32,6 +35,50 @@ pub fn generate_func_block(
     wrapper_blocks
 }
 
+pub fn generate_func_block_by_builder(
+    function: &Func,
+    func_type: &FuncType,
+    left_x: i64,
+    blocks_y: &mut i64,
+    (i, len): (&mut usize, usize),
+) -> StackBuilder {
+    let mut stack_block_builder = StackBuilder::new();
+    let block_func_builder = BlockNormalBuilder::new("procedures_definition")
+        .set_x(Some((left_x - 2000) as f64))
+        .set_y(Some(*blocks_y as f64))
+        .set_shadow(false)
+        .add_input(
+            "custom_block",
+            *BlockInputBuilder::new()
+                .set_shadow(ShadowInputType::Shadow)
+                .add_input(
+                    Some(
+                      sb_itchy::block::StackOrValue::Stack(
+                        StackBuilder::start(
+                          *BlockNormalBuilder::new("procedures_prototype")
+                            .set_shadow(true)
+                            .set_mutation(
+                              BlockMutation {
+                                tag_name: "mutation".into(),
+                                children: vec![],
+                                mutation_enum: ProceduresPrototype {
+                                  proccode: format!("__wasm_{}", wrap_by_len(*i, len)),
+                                  argumentids: vec![],
+                                  argumentnames: vec![],
+                                  argumentdefaults: vec![],
+                                  warp: Some(true),
+                                },
+                              }
+                            )
+                        )
+                      )
+                    )
+                )
+        );
+
+
+    ()
+}
 // pub fn generate_func_block_wrapper(
 //     function: &Function,
 //     left_x: i64,
