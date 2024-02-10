@@ -1,9 +1,9 @@
-use sb_sbity::{list::List as SbList, string_hashmap::StringHashMap};
+use sb_itchy::{data::ListBuilder, target::SpriteBuilder};
+use sb_sbity::{list::List as SbList, string_hashmap::StringHashMap, value::Value};
 
 use crate::scratch::generate_id::generate_id;
 
-pub fn rewrite_list<'a>(list: &mut StringHashMap<SbList>) {
-    println!("rewrite_list {:#?}", list);
+pub fn rewrite_list(list: &mut StringHashMap<SbList>) {
     let names = list.0.keys().cloned().collect::<Vec<String>>();
     let blocks: Vec<SbList> = vec![
         SbList {

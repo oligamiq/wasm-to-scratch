@@ -10,20 +10,21 @@ use sb_sbity::{
     block::{Block, BlockInput, BlockMutation, BlockNormal, ShadowInputType},
     string_hashmap::StringHashMap,
 };
-use wasm_ast::{Function, FunctionType, ResultType, ValueType};
+use wain_ast::{Func, FuncType, ValType};
 
 use super::function_code::generate_func_block_code;
 
 // https://developer.mozilla.org/ja/docs/WebAssembly/Understanding_the_text_format
 
 pub fn generate_func_block(
-    function: &Function,
+    function: &Func,
+    func_type: &FuncType,
     left_x: i64,
     blocks_y: &mut i64,
     (i, len): (&mut usize, usize),
 ) -> StringHashMap<Block> {
     let (wrapper_blocks, wrapper_id) =
-        generate_func_block_impl(function, wrap_by_len(*i, len), left_x, blocks_y);
+        generate_func_block_impl(function, func_type, wrap_by_len(*i, len), left_x, blocks_y);
     *i += 1;
 
     // let
@@ -46,15 +47,17 @@ pub fn generate_func_block(
 // }
 
 pub fn generate_func_block_impl(
-    function: &Function,
+    function: &Func,
+    func_type: &FuncType,
     name: String,
     left_x: i64,
     blocks_y: &mut i64,
 ) -> (StringHashMap<Block>, String) {
+
     let this_block_id = generate_id();
 
     let (func_input_blocks, param_id) =
-        generate_func_input_block(this_block_id.clone(), function.locals(), name);
+        generate_func_input_block(this_block_id.clone(), &func_type.params, name);
 
     let mut inputs = StringHashMap::default();
     inputs.0.insert(
@@ -84,8 +87,14 @@ pub fn generate_func_block_impl(
 
     blocks.0.extend(func_input_blocks.0);
 
-    let function_blocks = function.body();
-    generate_func_block_code(function_blocks, this_block_id.clone());
+    let function_blocks = match &function.kind {
+        wain_ast::FuncKind::Import(import) => {
+            todo!()
+        }
+        wain_ast::FuncKind::Body { locals, expr } => {
+            generate_func_block_code(expr, this_block_id.clone());
+        }
+    };
 
     *blocks_y += 100;
 
@@ -94,7 +103,7 @@ pub fn generate_func_block_impl(
 
 pub fn generate_func_input_block(
     parent: String,
-    types: &ResultType,
+    types: &Vec<ValType>,
     name: String,
 ) -> (StringHashMap<Block>, String) {
     let pre_name = "__wasm_";
@@ -108,8 +117,8 @@ pub fn generate_func_input_block(
     let mut argumentids = Vec::new();
     let mut argumentnames = Vec::new();
     let mut argumentdefaults = Vec::new();
-    let len = types.kinds().len();
-    for (i, ty) in types.kinds().iter().enumerate() {
+    let len = types.len();
+    for (i, ty) in types.iter().enumerate() {
         let wrapper_id = generate_id();
         let (id, block, ty, name, default) = generate_func_input_block_var(
             this_block_id.clone(),
@@ -160,15 +169,13 @@ pub fn generate_func_input_block(
 pub fn generate_func_input_block_var(
     parent: String,
     pre_name: String,
-    ty: &ValueType,
+    ty: &ValType,
 ) -> (String, Block, String, String, ValueWithBool) {
     match ty {
-        ValueType::I32 => generate_func_input_block_var_string_number(parent, pre_name),
-        ValueType::I64 => generate_func_input_block_var_string_number(parent, pre_name),
-        ValueType::F32 => generate_func_input_block_var_string_number(parent, pre_name),
-        ValueType::F64 => generate_func_input_block_var_string_number(parent, pre_name),
-        ValueType::FunctionReference => todo!(),
-        ValueType::ExternalReference => todo!(),
+        ValType::I32 => generate_func_input_block_var_string_number(parent, pre_name),
+        ValType::I64 => generate_func_input_block_var_string_number(parent, pre_name),
+        ValType::F32 => generate_func_input_block_var_string_number(parent, pre_name),
+        ValType::F64 => generate_func_input_block_var_string_number(parent, pre_name),
     }
 }
 

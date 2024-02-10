@@ -1,3 +1,5 @@
+#![no_std]
+
 // mod utils;
 
 use wasm_bindgen::prelude::*;
@@ -99,6 +101,24 @@ pub fn non() {
 //     v.push("c".to_string());
 //     v
 // }
+
+// static mut V: Vec<u64> = Vec::new();
+
+// #[wasm_bindgen]
+// pub fn vec_push() {
+//     unsafe {
+//         V.push(1);
+//     }
+// }
+
+static mut n: u64 = 0;
+
+#[wasm_bindgen]
+pub fn inc() {
+    unsafe {
+        n += 1;
+    }
+}
 
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;

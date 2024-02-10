@@ -10,8 +10,8 @@ description = "Converts WebAssembly to Scratch 3.0 projects"
 # wasmparser = "0.121"
 # https://docs.rs/rs-sb3/
 sb-sbity = { version = "0.6.0", git = "https://github.com/rusty-scratch/sb-sbity" }
+sb-itchy = { git = "https://github.com/oligamiq/sb-itchy" }
 anyhow = "1"
-wasm-ast = { version = "0.1", features = ["parser"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 getrandom = "0.2.12"

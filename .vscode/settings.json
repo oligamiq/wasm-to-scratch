@@ -4,14 +4,14 @@
     "argumentids",
     "argumentnames",
     "bindgen",
+    "funcs",
     "getrandom",
+    "Insn",
     "proccode",
     "sbity",
     "wasmparser"
   ],
   "rust-analyzer.linkedProjects": [
-    ".\\wasm-to-scratch\\Cargo.toml",
-    ".\\wasm-to-scratch\\Cargo.toml",
     ".\\wasm-to-scratch\\Cargo.toml"
   ]
 }
