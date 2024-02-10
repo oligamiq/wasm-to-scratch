@@ -1,5 +1,4 @@
-use sb_itchy::project::ProjectBuilder;
-use sb_sbity::{block::Block, string_hashmap::StringHashMap, target::SpriteOrStage};
+use sb_sbity::target::SpriteOrStage;
 use scratch::rewrite_dependency::rewrite_list;
 use scratch::test_data::test_project;
 
@@ -24,17 +23,16 @@ fn main() {
             SpriteOrStage::Stage(stage_impl) => {
                 rewrite_list(&mut stage_impl.target.lists);
             }
-            _ => {}
         }
     }
 
     if let Some(sprite) = sprite {
         let blocks = &mut sprite.target.blocks;
-        let (left_x, right_x, top_y, bottom_y) = get_preview_rect_from_block(blocks);
+        let (left_x, _right_x, top_y, _bottom_y) = get_preview_rect_from_block(blocks);
         // println!("{:#?}", blocks);
 
         let data = test_wasm_binary().unwrap();
-        let mut wain = match wain_syntax_binary::parse(&data) {
+        let wain = match wain_syntax_binary::parse(&data) {
             Ok(wasm) => wasm,
             Err(_) => {
                 println!("error");
@@ -52,7 +50,7 @@ fn main() {
         let mut i = 0;
         for (func_index, function) in module.funcs.iter().enumerate() {
             // len文字の長さで0埋め
-            let name = util::wrap_by_len(i, functions_count);
+            let _name = util::wrap_by_len(i, functions_count);
 
             // println!("{:?}", function.idx);
             // println!("{:?}", function.start);
@@ -63,7 +61,7 @@ fn main() {
                     println!("import {func_index}");
                     println!("{:?}", import);
                 }
-                wain_ast::FuncKind::Body { locals, expr } => {
+                wain_ast::FuncKind::Body { locals, expr: _ } => {
                     println!("local {func_index}");
                     println!("{:?}", locals);
                     println!("{:?}", func_type);

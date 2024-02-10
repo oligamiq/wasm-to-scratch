@@ -1,5 +1,4 @@
-use sb_itchy::{data::ListBuilder, target::SpriteBuilder};
-use sb_sbity::{list::List as SbList, string_hashmap::StringHashMap, value::Value};
+use sb_sbity::{list::List as SbList, string_hashmap::StringHashMap};
 
 use crate::scratch::generate_id::generate_id;
 

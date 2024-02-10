@@ -3,16 +3,16 @@ use wain_ast::Instruction;
 
 pub fn generate_func_block_code(
     instruction: &Vec<Instruction>,
-    parent: String,
+    _parent: String,
 ) -> StringHashMap<BlockField> {
-    let mut fields = StringHashMap::default();
-    for (i, item) in instruction.iter().enumerate() {
+    let fields = StringHashMap::default();
+    for (_i, item) in instruction.iter().enumerate() {
         match &item.kind {
-            wain_ast::InsnKind::Block { ty, body } => {
+            wain_ast::InsnKind::Block { ty: _, body: _ } => {
                 // let mut block = generate_func_block_code(&body, parent.clone());
                 // fields.0.extend(block.0);
             }
-            wain_ast::InsnKind::Loop { ty, body } => {
+            wain_ast::InsnKind::Loop { ty: _, body: _ } => {
                 // let mut block = generate_func_block_code(&body, parent.clone());
                 // fields.0.extend(block.0);
             }

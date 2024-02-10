@@ -1,33 +1,20 @@
 use std::collections::HashMap;
-use std::fmt::format;
 
-use crate::scratch::block::function_code::generate_func_block_code;
 use crate::util::wrap_by_len;
 
-use crate::scratch::generate_id::generate_id;
-use sb_itchy::block::BlockBuilder;
 use sb_itchy::build_context::TargetContext;
-use sb_itchy::stack::StackBuilder;
-use sb_itchy::target::SpriteBuilder;
-use sb_itchy::uid::Uid;
-use sb_sbity::block::BlockField::WithId;
-use sb_sbity::block::BlockMutationEnum::ProceduresPrototype;
-use sb_sbity::block::UidOrValue;
-use sb_sbity::value::Value::Text;
-use sb_sbity::value::ValueWithBool;
-use sb_sbity::{
-    block::{Block, BlockInput, BlockMutation, BlockNormal, ShadowInputType},
-    string_hashmap::StringHashMap,
-};
+
+use sb_sbity::{block::Block, string_hashmap::StringHashMap};
 use wain_ast::{Func, FuncType, ValType};
 
-use super::custom_block_func::CustomBlockInputType;
-use super::custom_block_stack_builder::CustomStackBuilder;
+use super::{
+    custom_block_func::CustomBlockInputType, custom_block_stack_builder::CustomStackBuilder,
+};
 
 // https://developer.mozilla.org/ja/docs/WebAssembly/Understanding_the_text_format
 
 pub fn generate_func_block(
-    function: &Func,
+    _function: &Func,
     func_type: &FuncType,
     left_x: i64,
     blocks_y: &mut i64,
