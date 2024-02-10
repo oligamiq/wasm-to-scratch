@@ -1,0 +1,12 @@
+[workspace]
+resolver = "2"
+members = ["testcode", "wasm-to-scratch"]
+default-members = ["wasm-to-scratch"]
+
+[workspace.package]
+# license = "MIT/Apache-2.0"
+license = "LGPL-3.0"
+edition = "2021"
+rust-version = "1.75"
+version = "0.1.0"
+

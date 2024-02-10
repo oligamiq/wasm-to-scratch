@@ -1,0 +1,17 @@
+{
+  "cSpell.words": [
+    "argumentdefaults",
+    "argumentids",
+    "argumentnames",
+    "bindgen",
+    "getrandom",
+    "proccode",
+    "sbity",
+    "wasmparser"
+  ],
+  "rust-analyzer.linkedProjects": [
+    ".\\wasm-to-scratch\\Cargo.toml",
+    ".\\wasm-to-scratch\\Cargo.toml",
+    ".\\wasm-to-scratch\\Cargo.toml"
+  ]
+}
