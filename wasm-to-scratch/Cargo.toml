@@ -2,6 +2,7 @@
 name = "wasm-to-scratch"
 version.workspace = true
 edition.workspace = true
+description = "Converts WebAssembly to Scratch 3.0 projects"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
