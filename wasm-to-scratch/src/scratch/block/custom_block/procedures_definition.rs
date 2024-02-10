@@ -2,9 +2,9 @@ use std::collections::HashMap;
 
 use crate::util::wrap_by_len;
 
-use sb_itchy::build_context::TargetContext;
+use sb_itchy::{block::{BlockFieldBuilder, BlockInputBuilder, BlockNormalBuilder, BlockVarListBuilder}, blocks::replace_in_list, build_context::TargetContext, stack::StackBuilder};
 
-use sb_sbity::{block::Block, string_hashmap::StringHashMap};
+use sb_sbity::{block::{Block, BlockInputValue}, string_hashmap::StringHashMap};
 use wain_ast::{Func, FuncType, ValType};
 
 use super::{
@@ -56,6 +56,12 @@ pub fn generate_func_block(
     inner_builder.set_top_block_position((left_x - 2000) as f64, (*blocks_y) as f64);
     *i += 1;
     *blocks_y += 200;
+
+    inner_builder = inner_builder.next(replace_in_list(
+        BlockFieldBuilder::new("__wasm_function_stack".into()),
+        BlockInputBuilder::value(BlockInputValue::Integer { value: 1.into() }),
+        BlockInputBuilder::value(BlockInputValue::String { value: "Hello world".to_owned().into() }),
+    ));
 
     let blocks = inner_builder.build(
         &mut HashMap::default(),
