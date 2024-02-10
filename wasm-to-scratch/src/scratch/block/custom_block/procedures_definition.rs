@@ -4,7 +4,7 @@ use crate::util::wrap_by_len;
 
 use sb_itchy::{
     block::{BlockFieldBuilder, BlockInputBuilder},
-    blocks::replace_in_list,
+    blocks::*,
     build_context::TargetContext,
 };
 
