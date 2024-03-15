@@ -18,11 +18,12 @@ pub enum CustomBlockInputType {
 
 pub fn generate_custom_block(
     input: Vec<CustomBlockInputType>,
+    warp: bool,
 ) -> ((Uid, BlockNormal), HashMap<Uid, Block>) {
     let this_block_id = Uid::generate();
     let mut stack = HashMap::default();
 
-    let params_id = generate_func_input_block(this_block_id.clone(), &input, &mut stack);
+    let params_id = generate_func_input_block(this_block_id.clone(), &input, &mut stack, warp);
 
     let mut inputs = StringHashMap::default();
     inputs.0.insert(
@@ -54,6 +55,7 @@ pub fn generate_func_input_block(
     parent: Uid,
     params: &Vec<CustomBlockInputType>,
     stack: &mut HashMap<Uid, Block>,
+    warp: bool,
 ) -> Uid {
     let this_block_id = Uid::generate();
 
@@ -147,7 +149,7 @@ pub fn generate_func_input_block(
                 argumentids,
                 argumentnames,
                 argumentdefaults,
-                warp: Some(true),
+                warp: Some(warp),
             },
         }),
         comment: None,

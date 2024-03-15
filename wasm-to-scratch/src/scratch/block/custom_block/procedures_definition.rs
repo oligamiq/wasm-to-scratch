@@ -59,7 +59,7 @@ pub fn generate_func_block(
         .collect::<Vec<CustomBlockInputType>>();
 
     func_type.insert(0, CustomBlockInputType::Text(name.clone()));
-    let mut inner_builder = CustomStackBuilder::new(func_type);
+    let mut inner_builder = CustomStackBuilder::new(func_type, true);
     inner_builder.set_top_block_position((left_x - 2000) as f64, (*blocks_y) as f64);
     *i += 1;
     *blocks_y += 200;

@@ -16,8 +16,8 @@ pub struct CustomStackBuilder {
 }
 
 impl CustomStackBuilder {
-    pub fn new(input: Vec<CustomBlockInputType>) -> CustomStackBuilder {
-        let ((id, first_block), stack) = generate_custom_block(input);
+    pub fn new(input: Vec<CustomBlockInputType>, warp: bool) -> CustomStackBuilder {
+        let ((id, first_block), stack) = generate_custom_block(input, warp);
         CustomStackBuilder {
             first_block: (id.into_inner(), first_block),
             stack: vec![],
