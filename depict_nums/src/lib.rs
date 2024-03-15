@@ -1,4 +1,7 @@
 pub mod i32;
+pub mod i64;
+pub mod f32;
+pub mod f64;
 
 #[inline(always)]
 pub fn sb_mod(a: f64, b: f64) -> f64 {
