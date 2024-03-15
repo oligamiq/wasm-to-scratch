@@ -113,6 +113,25 @@ impl std::ops::Mul for DepictI32 {
     }
 }
 
+impl std::ops::Div for DepictI32 {
+    type Output = DepictI32;
+
+    fn div(self, rhs: DepictI32) -> Self::Output {
+        println!("self: {}, rhs: {}", self.0, rhs.0);
+
+        let div = self.0 / rhs.0;
+
+        println!("div: {}", div);
+
+        let div = if div < 0f64 {
+            div.ceil()
+        } else {
+            div.floor()
+        };
+        DepictI32(div)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     mod add {
@@ -327,6 +346,92 @@ mod tests {
                     let result = a * b;
                     assert_eq!(Into::<i32>::into(result), _a.wrapping_mul(_b),);
                 }
+            }
+        }
+
+        use rand::distributions::Uniform;
+        use rand::Rng;
+
+        #[test]
+        fn test_multiplication_consistency_with_i32() {
+            let mut rng = rand::thread_rng();
+            let range = Uniform::new_inclusive(std::i32::MIN, std::i32::MAX);
+
+            for _ in 0..1000000 {
+                let a = rng.sample(range);
+                let b = rng.sample(range);
+                assert_eq!(
+                    a.wrapping_mul(b),
+                    (DepictI32::from(a) * DepictI32::from(b)).into()
+                );
+            }
+        }
+    }
+
+    mod div {
+        use crate::i32::DepictI32;
+
+        #[test]
+        fn test_division_without_overflow_plus_plus() {
+            let a: DepictI32 = 20.into();
+            let b: DepictI32 = 10.into();
+            let result: DepictI32 = a / b;
+            assert_eq!(Into::<i32>::into(result), 2);
+        }
+
+        #[test]
+        fn test_division_without_overflow_minus_plus() {
+            let a: DepictI32 = (-20).into();
+            let b: DepictI32 = 10.into();
+            let result: DepictI32 = a / b;
+            assert_eq!(Into::<i32>::into(result), (-2));
+        }
+
+        #[test]
+        fn test_division_without_overflow_plus_minus() {
+            let a: DepictI32 = 20.into();
+            let b: DepictI32 = (-10).into();
+            let result: DepictI32 = a / b;
+            assert_eq!(Into::<i32>::into(result), (-2));
+        }
+
+        #[test]
+        fn test_division_without_overflow_minus_minus() {
+            let a: DepictI32 = (-20).into();
+            let b: DepictI32 = (-10).into();
+            let result: DepictI32 = a / b;
+            assert_eq!(Into::<i32>::into(result), 2);
+        }
+
+        #[test]
+        fn test_division_with_overflow_plus_minus() {
+            for diff_1 in -10..10 {
+                for diff_2 in -10..10 {
+                    let _a = std::i32::MAX.wrapping_add(diff_1);
+                    let _b = std::i32::MIN.wrapping_add(diff_2);
+                    let a: DepictI32 = _a.into();
+                    let b: DepictI32 = _b.into();
+                    let result = a / b;
+                    assert_eq!(Into::<i32>::into(result), _a.wrapping_div(_b),);
+                }
+            }
+        }
+
+        use rand::distributions::Uniform;
+        use rand::Rng;
+
+        #[test]
+        fn test_division_consistency_with_i32() {
+            let mut rng = rand::thread_rng();
+            let range = Uniform::new_inclusive(std::i32::MIN, std::i32::MAX);
+
+            for _ in 0..1000000 {
+                let a = rng.sample(range);
+                let b = rng.sample(range);
+                assert_eq!(
+                    a.wrapping_div(b),
+                    (DepictI32::from(a) / DepictI32::from(b)).into()
+                );
             }
         }
     }
