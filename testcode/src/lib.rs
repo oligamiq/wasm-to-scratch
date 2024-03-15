@@ -1,7 +1,10 @@
 #![no_std]
 
-// mod utils;
+extern crate wee_alloc;
+extern crate alloc;
 
+use alloc::string::String;
+use alloc::format;
 use wasm_bindgen::prelude::*;
 
 // // #[wasm_bindgen]
@@ -15,15 +18,18 @@ use wasm_bindgen::prelude::*;
 // //     log("Hello, world!");
 // // }
 
-// #[wasm_bindgen]
-// pub fn greet() -> String {
-//     "Hello, world!".into()
-// }
 
-// #[wasm_bindgen]
-// pub fn nya(t: String) -> String {
-//     format!("nya(=^・・^=) {}", t)
-// }
+#[wasm_bindgen]
+pub fn greet() -> String {
+    "Hello, world!".into()
+}
+
+#[wasm_bindgen]
+pub fn nya(t: String) -> String {
+    // <wasm_bindgen::convert::ReturnWasmAbi>::return_abi(Ok(1));
+    format!("nya(=^・・^=) {}", t)
+}
+
 
 // // https://rustwasm.github.io/wasm-bindgen/api/wasm_bindgen/convert/trait.IntoWasmAbi.html
 

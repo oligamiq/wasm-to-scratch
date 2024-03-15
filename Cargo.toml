@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = [ "testcode", "testreactor", "wasm-to-scratch", "buddy_block"]
+members = [ "testcode", "testreactor", "wasm-to-scratch", "buddy_block", "depict_nums"]
 default-members = ["wasm-to-scratch"]
 
 [workspace.package]

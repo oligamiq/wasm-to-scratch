@@ -1,0 +1,11 @@
+[package]
+name = "depict_nums"
+license.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+rand = "0.8.5"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

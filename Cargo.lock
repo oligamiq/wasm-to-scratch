@@ -187,6 +187,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "depict_nums"
+version = "0.1.0"
+dependencies = [
+ "rand",
+]
+
+[[package]]
 name = "deranged"
 version = "0.3.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
