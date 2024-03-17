@@ -27,8 +27,23 @@ impl std::ops::Add for DepictF32 {
 }
 
 impl DepictF32 {
+    // bitの計算
+    pub fn calc_bits(&self) -> Vec<bool> {
+        let mut bits = vec![];
+        let s = self.calc_sign();
+        let (e, e_n) = self.calc_e();
+        let f = self.calc_f_impl(e_n);
+        bits.push(s);
+        bits.extend(e);
+        bits.extend(f);
+        bits
+    }
+
     // 符号部の計算
     pub fn calc_sign(&self) -> bool {
+        if self.0.is_nan() {
+            return false;
+        }
         if self.0 == 0.0 {
             if self.0.to_string().chars().nth(0).unwrap() == '-' {
                 return true;
@@ -99,7 +114,15 @@ impl DepictF32 {
         (e_bits, e)
     }
 
+    // 仮数部の計算
     pub fn calc_f(&self) -> Vec<bool> {
+        let (_, e) = self.calc_e();
+
+        self.calc_f_impl(e)
+    }
+
+    // 仮数部の計算
+    pub fn calc_f_impl(&self, e: f64) -> Vec<bool> {
         let mut f = self.0;
         if f.is_nan() {
             return vec![false; 52];
@@ -113,12 +136,9 @@ impl DepictF32 {
         if f == 0.0 || f == -0.0 {
             return vec![false; 52];
         }
-        let (_, e) = self.calc_e();
         let e = e - 1023.0;
 
         // e(指数)を用いて正規化する
-        // println!("{:?}", e);
-        // println!("{:?}", f);
         if f < 0.0 {
             f = -f;
         }
@@ -126,7 +146,6 @@ impl DepictF32 {
         f -= 1.0;
 
         let mut f_bits = Vec::new();
-        // let mut count = 0;
 
         // 2進数にする
         while f != 0.0 {
@@ -137,11 +156,6 @@ impl DepictF32 {
             } else {
                 f_bits.push(false);
             }
-
-            // count += 1;
-            // if count > 52 {
-            //     break;
-            // }
         }
 
         for _ in f_bits.len()..52 {
@@ -171,6 +185,9 @@ impl DepictF32 {
 
     // 符号部の計算
     pub fn get_sign_by_shift(&self) -> bool {
+        if self.0.is_nan() {
+            return false;
+        }
         let bits = self.get_bits_by_shift();
         bits[0]
     }
@@ -188,6 +205,21 @@ impl DepictF32 {
             return vec![false; 52];
         }
         return bits[12..64].to_vec();
+    }
+
+    // bitの計算
+    pub fn get_bits_by_shift_repair(&self) -> Vec<bool> {
+        if self.0.is_nan() {
+            let mut bits = vec![];
+            let s = self.get_sign_by_shift();
+            let e = self.get_e_by_shift();
+            let f = self.get_f_by_shift();
+            bits.push(s);
+            bits.extend(e);
+            bits.extend(f);
+            return bits;
+        }
+        self.get_bits_by_shift()
     }
 }
 
@@ -558,6 +590,37 @@ mod test {
                 let b = super::super::DepictF32::from(f32::from_bits(low));
                 let u = b.get_f_by_shift();
                 assert_eq!(t, u);
+            }
+        }
+    }
+
+    mod bits {
+        use super::super::DepictF32;
+
+        #[test]
+        fn test_bits() {
+            for i in 0..32 {
+                let a = DepictF32::from(2.0f32.powi(i));
+                let bits = a.calc_bits();
+                let bits_shift = a.get_bits_by_shift();
+                assert_eq!(bits, bits_shift);
+            }
+        }
+
+        use rand::distributions::Uniform;
+        use rand::Rng;
+
+        #[test]
+        fn test_bits_2() {
+            let mut rng = rand::thread_rng();
+            let range: Uniform<u32> = Uniform::new(std::u32::MIN, std::u32::MAX);
+            for _ in 0..100000 {
+                let low = rng.sample(range);
+                let a = DepictF32::from(f32::from_bits(low));
+                let bits = a.calc_bits();
+                let bits_shift = a.get_bits_by_shift_repair();
+                println!("num: {:?}", f32::from_bits(low));
+                assert_eq!(bits, bits_shift);
             }
         }
     }
