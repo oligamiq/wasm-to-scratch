@@ -123,11 +123,7 @@ impl std::ops::Div for DepictI32 {
 
         println!("div: {}", div);
 
-        let div = if div < 0f64 {
-            div.ceil()
-        } else {
-            div.floor()
-        };
+        let div = if div < 0f64 { div.ceil() } else { div.floor() };
         DepictI32(div)
     }
 }
