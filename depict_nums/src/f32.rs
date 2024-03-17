@@ -40,24 +40,20 @@ impl DepictF32 {
     }
 
     // 指数部の計算
-    pub fn calc_e(&self) -> Vec<bool> {
+    pub fn calc_e(&self) -> (Vec<bool>, f64) {
         // 2で割っていく
         let mut f = self.0;
         if f == std::f64::INFINITY {
-            // return 1024f64;
-            return vec![true; 11];
+            return (vec![true; 11], 1024f64);
         }
         if f == std::f64::NEG_INFINITY {
-            // return 1024f64;
-            return vec![true; 11];
+            return (vec![true; 11], 1024f64);
         }
         if f.is_nan() {
-            // return 1024f64;
-            return vec![true; 11];
+            return (vec![true; 11], 1024f64);
         }
         if f == 0.0 {
-            // return -1023f64;
-            return vec![false; 11];
+            return (vec![false; 11], -1023f64);
         }
         let mut e: f64 = 0.0;
         let e = if f < 0.0 {
@@ -91,7 +87,7 @@ impl DepictF32 {
             }
         };
         let e = e + 1023.0;
-        println!("e: {:?}", e);
+        // println!("e: {:?}", e);
         let mut e_bits = vec![];
         // bit演算は使わない
         let mut b = e;
@@ -100,11 +96,64 @@ impl DepictF32 {
             b = (b / 2.0).floor();
         }
         e_bits.reverse();
-        e_bits
+        (e_bits, e)
     }
 
+    pub fn calc_f(&self) -> Vec<bool> {
+        let mut f = self.0;
+        if f.is_nan() {
+            return vec![false; 52];
+        }
+        if f == std::f64::INFINITY {
+            return vec![false; 52];
+        }
+        if f == std::f64::NEG_INFINITY {
+            return vec![false; 52];
+        }
+        if f == 0.0 || f == -0.0 {
+            return vec![false; 52];
+        }
+        let (_, e) = self.calc_e();
+        let e = e - 1023.0;
+
+        // e(指数)を用いて正規化する
+        // println!("{:?}", e);
+        // println!("{:?}", f);
+        if f < 0.0 {
+            f = -f;
+        }
+        f = f / 2.0f64.powi(e as i32);
+        f -= 1.0;
+
+        let mut f_bits = Vec::new();
+        // let mut count = 0;
+
+        // 2進数にする
+        while f != 0.0 {
+            f *= 2.0;
+            if f >= 1.0 {
+                f_bits.push(true);
+                f -= 1.0;
+            } else {
+                f_bits.push(false);
+            }
+
+            // count += 1;
+            // if count > 52 {
+            //     break;
+            // }
+        }
+
+        for _ in f_bits.len()..52 {
+            f_bits.push(false);
+        }
+
+        f_bits
+    }
+
+    // bitの計算
     pub fn get_bits_by_shift(&self) -> Vec<bool> {
-        println!("sl: {:?}", self.0);
+        // println!("sl: {:?}", self.0);
         let f = self.0;
         let f_bits = f.to_bits();
         let mut bits = vec![];
@@ -113,10 +162,10 @@ impl DepictF32 {
         }
         bits.reverse();
         // println!("{:b}", f_bits);
-        for i in 0..64 {
-            print!("{:?}", if bits[i] { 1 } else { 0 });
-        }
-        println!();
+        // for i in 0..64 {
+        //     print!("{:?}", if bits[i] { 1 } else { 0 });
+        // }
+        // println!();
         bits
     }
 
@@ -366,7 +415,7 @@ mod test {
         fn test_calc_e() {
             for i in 0..32 {
                 let a = DepictF32::from(2.0f32.powi(i));
-                let e_calc = a.calc_e();
+                let (e_calc, _) = a.calc_e();
                 let e_shift = a.get_e_by_shift();
                 assert_eq!(e_calc, e_shift);
             }
@@ -376,7 +425,7 @@ mod test {
         fn test_calc_e_2() {
             for i in 0..32 {
                 let a = DepictF32::from(-2.0f32.powi(i));
-                let e_calc = a.calc_e();
+                let (e_calc, _) = a.calc_e();
                 let e_shift = a.get_e_by_shift();
                 assert_eq!(e_calc, e_shift);
             }
@@ -385,7 +434,7 @@ mod test {
         #[test]
         fn test_calc_e_3() {
             let a = DepictF32::from(0.0);
-            let e_calc = a.calc_e();
+            let (e_calc, _) = a.calc_e();
             let e_shift = a.get_e_by_shift();
             assert_eq!(e_calc, e_shift);
         }
@@ -393,7 +442,7 @@ mod test {
         #[test]
         fn test_calc_e_4() {
             let a = DepictF32::from(-0.0);
-            let e_calc = a.calc_e();
+            let (e_calc, _) = a.calc_e();
             let e_shift = a.get_e_by_shift();
             assert_eq!(e_calc, e_shift);
         }
@@ -401,7 +450,7 @@ mod test {
         #[test]
         fn test_calc_e_5() {
             let a = DepictF32::from(f32::INFINITY);
-            let e_calc = a.calc_e();
+            let (e_calc, _) = a.calc_e();
             let e_shift = a.get_e_by_shift();
             assert_eq!(e_calc, e_shift);
         }
@@ -409,7 +458,7 @@ mod test {
         #[test]
         fn test_calc_e_6() {
             let a = DepictF32::from(f32::NEG_INFINITY);
-            let e_calc = a.calc_e();
+            let (e_calc, _) = a.calc_e();
             let e_shift = a.get_e_by_shift();
             assert_eq!(e_calc, e_shift);
         }
@@ -424,9 +473,91 @@ mod test {
             for _ in 0..100000 {
                 let low = rng.sample(range);
                 let a = DepictF32::from(f32::from_bits(low));
-                let e_calc = a.calc_e();
+                let (e_calc, _) = a.calc_e();
                 let e_shift = a.get_e_by_shift();
                 assert_eq!(e_calc, e_shift);
+            }
+        }
+    }
+
+    mod calc_f {
+        #[test]
+        fn test_calc_f() {
+            for i in 0..32 {
+                let a = super::super::DepictF32::from(2.0f32.powi(i));
+                assert_eq!(a.calc_f(), vec![false; 52]);
+            }
+        }
+
+        #[test]
+        fn test_calc_f_2() {
+            for i in 0..32 {
+                let a = super::super::DepictF32::from(-2.0f32.powi(i));
+                assert_eq!(a.calc_f(), vec![false; 52]);
+            }
+        }
+
+        #[test]
+        fn test_calc_f_3() {
+            let a = super::super::DepictF32::from(0.0);
+            assert_eq!(a.calc_f(), vec![false; 52]);
+        }
+
+        #[test]
+        fn test_calc_f_4() {
+            let a = super::super::DepictF32::from(-0.0);
+            assert_eq!(a.calc_f(), vec![false; 52]);
+        }
+
+        #[test]
+        fn test_calc_f_5() {
+            let a = super::super::DepictF32::from(f32::INFINITY);
+            assert_eq!(a.calc_f(), vec![false; 52]);
+        }
+
+        #[test]
+        fn test_calc_f_6() {
+            let a = super::super::DepictF32::from(f32::NEG_INFINITY);
+            assert_eq!(a.calc_f(), vec![false; 52]);
+        }
+
+        #[test]
+        fn test_calc_f_7() {
+            let a = super::super::DepictF32::from(f32::NAN);
+            assert_eq!(a.calc_f(), vec![false; 52]);
+        }
+
+        use rand::distributions::Uniform;
+        use rand::Rng;
+
+        #[test]
+        fn test_calc_f_8() {
+            let mut rng = rand::thread_rng();
+            let range: Uniform<u32> = Uniform::new(std::u32::MIN, std::u32::MAX);
+            for _ in 0..100000 {
+                let low = rng.sample(range);
+                let a = super::super::DepictF32::from(f32::from_bits(low));
+                if a.0.abs() < i32::MAX as f64 {
+                    let t = a.calc_f();
+                    let b = f32::from_bits(low) * 2.0;
+                    let c = super::super::DepictF32::from(b);
+                    let u = c.calc_f();
+                    assert_eq!(t, u);
+                }
+            }
+        }
+
+        #[test]
+        fn test_calc_f_9() {
+            let mut rng = rand::thread_rng();
+            let range: Uniform<u32> = Uniform::new(std::u32::MIN, std::u32::MAX);
+            for _ in 0..100000 {
+                let low = rng.sample(range);
+                let a = super::super::DepictF32::from(f32::from_bits(low));
+                let t = a.calc_f();
+                let b = super::super::DepictF32::from(f32::from_bits(low));
+                let u = b.get_f_by_shift();
+                assert_eq!(t, u);
             }
         }
     }
