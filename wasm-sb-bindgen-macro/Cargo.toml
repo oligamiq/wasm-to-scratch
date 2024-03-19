@@ -1,0 +1,27 @@
+[package]
+name = "wasm-sb-bindgen-macro"
+license.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+version = "0.1.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+proc-macro2 = "1.0"
+# syn = "2.0"
+syn = { version = "2.0", features = ["full", "extra-traits"] }
+quote = "1.0"
+anyhow = "1.0"
+proc-macro-error = "1.0"
+cfg-if = "1.0"
+
+[lib]
+proc-macro = true
+
+# https://astexplorer.net/
+# https://doc.rust-jp.rs/book-ja/ch19-06-macros.html
+# https://qiita.com/dalance/items/1911a775ee23f3e35d18
+# cargo expand
+
+# cargo build --release --target wasm32-unknown-unknown --out-dir . -Z unstable-options

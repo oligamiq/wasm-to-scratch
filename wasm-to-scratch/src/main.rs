@@ -86,6 +86,9 @@ fn main() {
             //     break;
             // }
         }
+
+        let (utf8_block, _) = scratch::block::to_utf8::generator::to_utf8_generator();
+        blocks.0.extend(utf8_block.0);
     }
     // for function in module.functions() {
     //     println!("{:?}", function);

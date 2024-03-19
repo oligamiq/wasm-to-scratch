@@ -65,7 +65,8 @@ pub fn generate_func_input_block(
     let mut argumentnames = Vec::new();
     let mut argumentdefaults = Vec::new();
 
-    let mut proccode: Option<String> = None;
+    // let mut proccode: Option<String> = None;
+    let mut proccode: Option<String> = Some("".into());
 
     for ty in params {
         let wrapper_id = Uid::generate();
