@@ -1,6 +1,6 @@
 use std::mem::{self, ManuallyDrop};
 
-use crate::{if_std, SbError, SbValue, UnwrapThrowExt as _};
+use crate::{SbError, SbValue, UnwrapThrowExt as _};
 
 use super::{
     FromWasmAbi, IntoWasmAbi, LongRefFromWasmAbi, OptionFromWasmAbi, OptionIntoWasmAbi,

@@ -3,7 +3,7 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use crate::{__wasm_sb_bindgen_copy_to_typed_array, if_std};
+use crate::__wasm_sb_bindgen_copy_to_typed_array;
 
 use super::{
     cast::SbObject,

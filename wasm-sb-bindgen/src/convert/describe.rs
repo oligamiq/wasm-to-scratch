@@ -2,7 +2,7 @@
 
 #![doc(hidden)]
 
-use crate::{if_std, SbError, SbValue, __wasm_sb_bindgen_describe};
+use crate::{SbError, SbValue, __wasm_sb_bindgen_describe};
 
 use super::cast::SbObject;
 

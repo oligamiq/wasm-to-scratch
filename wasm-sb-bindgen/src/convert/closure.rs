@@ -65,6 +65,23 @@ macro_rules! stack_closures_only {
     )*)
 }
 
+// impl<'a, 'b, A, R> IntoWasmAbi for &'a mut (dyn FnMut(&A) -> R + 'b)
+// where
+//     A: RefFromWasmAbi,
+// R: ReturnWasmAbi,
+
+stack_closures_only! {
+    (0 invoke0 invoke0_mut)
+    (1 invoke1 invoke1_mut A)
+    (2 invoke2 invoke2_mut A B)
+    (3 invoke3 invoke3_mut A B C)
+    (4 invoke4 invoke4_mut A B C D)
+    (5 invoke5 invoke5_mut A B C D E)
+    (6 invoke6 invoke6_mut A B C D E F)
+    (7 invoke7 invoke7_mut A B C D E F G)
+    (8 invoke8 invoke8_mut A B C D E F G H)
+}
+
 macro_rules! stack_closures {
     ($( ($cnt:tt $invoke:ident $invoke_mut:ident $($var:ident $arg1:ident $arg2:ident $arg3:ident $arg4:ident)*) )*) => ($(
         #[allow(non_snake_case)]
@@ -132,19 +149,6 @@ stack_closures! {
     (7 invoke7 invoke7_mut A a1 a2 a3 a4 B b1 b2 b3 b4 C c1 c2 c3 c4 D d1 d2 d3 d4 E e1 e2 e3 e4 F f1 f2 f3 f4 G g1 g2 g3 g4)
     (8 invoke8 invoke8_mut A a1 a2 a3 a4 B b1 b2 b3 b4 C c1 c2 c3 c4 D d1 d2 d3 d4 E e1 e2 e3 e4 F f1 f2 f3 f4 G g1 g2 g3 g4 H h1 h2 h3 h4)
 }
-
-stack_closures_only! {
-    (0 invoke0 invoke0_mut)
-    (1 invoke1 invoke1_mut A)
-    (2 invoke2 invoke2_mut A B)
-    (3 invoke3 invoke3_mut A B C)
-    (4 invoke4 invoke4_mut A B C D)
-    (5 invoke5 invoke5_mut A B C D E)
-    (6 invoke6 invoke6_mut A B C D E F)
-    (7 invoke7 invoke7_mut A B C D E F G)
-    (8 invoke8 invoke8_mut A B C D E F G H)
-}
-
 
 impl<'a, 'b, A, R> IntoWasmAbi for &'a (dyn Fn(&A) -> R + 'b)
 where

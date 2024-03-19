@@ -3,8 +3,8 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
+use crate::SbValue;
 use crate::WasmDescribe;
-use crate::{if_std, SbValue};
 
 pub trait IntoWasmAbi: WasmDescribe {
     /// The wasm ABI type that this converts into when crossing the ABI

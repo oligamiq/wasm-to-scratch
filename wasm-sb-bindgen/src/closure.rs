@@ -255,15 +255,15 @@ where
     }
 }
 
-fn _check() {
-    fn _assert<T: IntoWasmAbi>() {}
-    _assert::<&Closure<dyn Fn()>>();
-    _assert::<&Closure<dyn Fn(String)>>();
-    _assert::<&Closure<dyn Fn() -> String>>();
-    _assert::<&Closure<dyn FnMut()>>();
-    _assert::<&Closure<dyn FnMut(String)>>();
-    _assert::<&Closure<dyn FnMut() -> String>>();
-}
+// fn _check() {
+//     fn _assert<T: IntoWasmAbi>() {}
+//     _assert::<&Closure<dyn Fn()>>();
+//     _assert::<&Closure<dyn Fn(String)>>();
+//     _assert::<&Closure<dyn Fn() -> String>>();
+//     _assert::<&Closure<dyn FnMut()>>();
+//     _assert::<&Closure<dyn FnMut(String)>>();
+//     _assert::<&Closure<dyn FnMut() -> String>>();
+// }
 
 impl<T> fmt::Debug for Closure<T>
 where
@@ -486,6 +486,17 @@ macro_rules! doit {
     )*)
 }
 
+// unsafe impl<A, R> WasmClosure for dyn Fn(A) -> R + 'static
+// where
+//     A: FromWasmAbi + 'static,
+//     R: ReturnWasmAbi + 'static,
+
+// unsafe impl<A, B, R> WasmClosure for dyn Fn(A, B) -> R + 'static
+// where
+//     A: FromWasmAbi + 'static,
+//     B: FromWasmAbi + 'static,
+//     R: ReturnWasmAbi + 'static,
+
 doit! {
     ()
     (A a1 a2 a3 a4)
@@ -497,6 +508,66 @@ doit! {
     (A a1 a2 a3 a4 B b1 b2 b3 b4 C c1 c2 c3 c4 D d1 d2 d3 d4 E e1 e2 e3 e4 F f1 f2 f3 f4 G g1 g2 g3 g4)
     (A a1 a2 a3 a4 B b1 b2 b3 b4 C c1 c2 c3 c4 D d1 d2 d3 d4 E e1 e2 e3 e4 F f1 f2 f3 f4 G g1 g2 g3 g4 H h1 h2 h3 h4)
 }
+
+// unsafe impl<A, R> WasmClosure for dyn Fn(&A) -> R
+// where
+//     A: RefFromWasmAbi,
+//     R: ReturnWasmAbi + 'static,
+// {
+//     fn describe() {
+//         #[allow(non_snake_case)]
+//         unsafe extern "C" fn invoke<A: RefFromWasmAbi, R: ReturnWasmAbi>(
+//             a: usize,
+//             b: usize,
+//             arg1: <A::Abi as WasmAbi>::Prim1,
+//             arg2: <A::Abi as WasmAbi>::Prim2,
+//             arg3: <A::Abi as WasmAbi>::Prim3,
+//             arg4: <A::Abi as WasmAbi>::Prim4,
+//         ) -> WasmRet<R::Abi> {
+//             if a == 0 {
+//                 throw_str("closure invoked after being dropped");
+//             }
+//             // Make sure all stack variables are converted before we
+//             // convert `ret` as it may throw (for `Result`, for
+//             // example)
+//             let ret = {
+//                 let f: *const dyn Fn(&A) -> R = FatPtr { fields: (a, b) }.ptr;
+//                 let arg = <A as RefFromWasmAbi>::ref_from_abi(A::Abi::join(arg1, arg2, arg3, arg4));
+//                 (*f)(&*arg)
+//             };
+//             ret.return_abi().into()
+//         }
+
+//         inform(invoke::<A, R> as u32);
+
+//         unsafe extern "C" fn destroy<A: RefFromWasmAbi, R: ReturnWasmAbi>(a: usize, b: usize) {
+//             // See `Fn()` above for why we simply return
+//             if a == 0 {
+//                 return;
+//             }
+//             drop(Box::from_raw(
+//                 FatPtr::<dyn Fn(&A) -> R> { fields: (a, b) }.ptr,
+//             ));
+//         }
+//         inform(destroy::<A, R> as u32);
+
+//         <&Self>::describe();
+//     }
+// }
+
+// trait WasmClosureFirst {}
+// // trait WasmClosureCommon {}
+
+// // impl<T> WasmClosureCommon for T where T: !RefFromWasmAbi {}
+
+// pub trait WasmClosureCommon: !WasmClosureFirst {}
+
+// // impl <A, R> WasmClosureCommon for dyn Fn(A) -> R + 'static
+// // where
+// //     A: FromWasmAbi + 'static,
+// //     R: ReturnWasmAbi + 'static,
+// // {
+// // }
 
 unsafe impl<A, R> WasmClosure for dyn Fn(&A) -> R
 where

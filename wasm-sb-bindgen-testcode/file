@@ -1,0 +1,206 @@
+#![feature(prelude_import)]
+#[prelude_import]
+use std::prelude::rust_2021::*;
+#[macro_use]
+extern crate std;
+extern crate wee_alloc;
+use wasm_sb_bindgen::wasm_sb_bindgen;
+#[allow(dead_code)]
+pub fn nya(t: String) -> String {
+    ("nya(=^・・^=) {}".to_string() + &t).clone()
+}
+#[automatically_derived]
+const _: () = {
+    #[export_name = "nya"]
+    pub unsafe extern "C" fn __wasm_sb_bindgen_generated_nya(
+        arg0_1: <<String as wasm_sb_bindgen::convert::FromWasmAbi>::Abi as wasm_sb_bindgen::convert::WasmAbi>::Prim1,
+        arg0_2: <<String as wasm_sb_bindgen::convert::FromWasmAbi>::Abi as wasm_sb_bindgen::convert::WasmAbi>::Prim2,
+        arg0_3: <<String as wasm_sb_bindgen::convert::FromWasmAbi>::Abi as wasm_sb_bindgen::convert::WasmAbi>::Prim3,
+        arg0_4: <<String as wasm_sb_bindgen::convert::FromWasmAbi>::Abi as wasm_sb_bindgen::convert::WasmAbi>::Prim4,
+    ) -> wasm_sb_bindgen::convert::WasmRet<
+        <String as wasm_sb_bindgen::convert::ReturnWasmAbi>::Abi,
+    > {
+        let _ret = {
+            let arg0 = unsafe {
+                <String as wasm_sb_bindgen::convert::FromWasmAbi>::from_abi(
+                    <<String as wasm_sb_bindgen::convert::FromWasmAbi>::Abi as wasm_sb_bindgen::convert::WasmAbi>::join(
+                        arg0_1,
+                        arg0_2,
+                        arg0_3,
+                        arg0_4,
+                    ),
+                )
+            };
+            let _ret = nya(arg0);
+            _ret
+        };
+        <String as wasm_sb_bindgen::convert::ReturnWasmAbi>::return_abi(_ret).into()
+    }
+};
+#[automatically_derived]
+const _: () = {
+    #[no_mangle]
+    #[doc(hidden)]
+    pub extern "C" fn __wasm_sb_bindgen_describe_nya() {
+        use wasm_sb_bindgen::describe::*;
+        wasm_sb_bindgen::__rt::link_mem_intrinsics();
+        inform(FUNCTION)
+    }
+};
+#[automatically_derived]
+const _: () = {
+    #[link(wasm_import_module = "__wasm_sb_bindgen_placeholder__")]
+    extern {
+        #[link_name = "schema_version_0_1_0"]
+        fn __wasm_sb_bindgen_placeholder_schema_version__();
+        #[link_name = "wasm_sb_bindgen_version_0_1_0"]
+        fn __wasm_sb_bindgen_placeholder_wasm_sb_bindgen_version__();
+    }
+    #[export_name = "__wasm_sb_bindgen_placeholder_anchor__"]
+    pub unsafe extern "C" fn __wasm_sb_bindgen_placeholder_anchor__() {
+        unsafe {
+            __wasm_sb_bindgen_placeholder_schema_version__();
+            __wasm_sb_bindgen_placeholder_wasm_sb_bindgen_version__();
+        }
+    }
+};
+#[allow(dead_code)]
+pub fn nya_2(t: String) -> String {
+    ("nya(=^・・^=) {}".to_string() + &t).clone()
+}
+#[automatically_derived]
+const _: () = {
+    #[export_name = "nya_2"]
+    pub unsafe extern "C" fn __wasm_sb_bindgen_generated_nya_2(
+        arg0_1: <<String as wasm_sb_bindgen::convert::FromWasmAbi>::Abi as wasm_sb_bindgen::convert::WasmAbi>::Prim1,
+        arg0_2: <<String as wasm_sb_bindgen::convert::FromWasmAbi>::Abi as wasm_sb_bindgen::convert::WasmAbi>::Prim2,
+        arg0_3: <<String as wasm_sb_bindgen::convert::FromWasmAbi>::Abi as wasm_sb_bindgen::convert::WasmAbi>::Prim3,
+        arg0_4: <<String as wasm_sb_bindgen::convert::FromWasmAbi>::Abi as wasm_sb_bindgen::convert::WasmAbi>::Prim4,
+    ) -> wasm_sb_bindgen::convert::WasmRet<
+        <String as wasm_sb_bindgen::convert::ReturnWasmAbi>::Abi,
+    > {
+        let _ret = {
+            let arg0 = unsafe {
+                <String as wasm_sb_bindgen::convert::FromWasmAbi>::from_abi(
+                    <<String as wasm_sb_bindgen::convert::FromWasmAbi>::Abi as wasm_sb_bindgen::convert::WasmAbi>::join(
+                        arg0_1,
+                        arg0_2,
+                        arg0_3,
+                        arg0_4,
+                    ),
+                )
+            };
+            let _ret = nya_2(arg0);
+            _ret
+        };
+        <String as wasm_sb_bindgen::convert::ReturnWasmAbi>::return_abi(_ret).into()
+    }
+};
+#[automatically_derived]
+const _: () = {
+    #[no_mangle]
+    #[doc(hidden)]
+    pub extern "C" fn __wasm_sb_bindgen_describe_nya_2() {
+        use wasm_sb_bindgen::describe::*;
+        wasm_sb_bindgen::__rt::link_mem_intrinsics();
+        inform(FUNCTION)
+    }
+};
+#[allow(dead_code)]
+pub fn woof(t: String, n: usize) -> String {
+    {
+        let res = ::alloc::fmt::format(format_args!("woof(=^・・^=) {0} {1}", t, n));
+        res
+    }
+}
+#[automatically_derived]
+const _: () = {
+    #[export_name = "woof"]
+    pub unsafe extern "C" fn __wasm_sb_bindgen_generated_woof(
+        arg0_1: <<String as wasm_sb_bindgen::convert::FromWasmAbi>::Abi as wasm_sb_bindgen::convert::WasmAbi>::Prim1,
+        arg0_2: <<String as wasm_sb_bindgen::convert::FromWasmAbi>::Abi as wasm_sb_bindgen::convert::WasmAbi>::Prim2,
+        arg0_3: <<String as wasm_sb_bindgen::convert::FromWasmAbi>::Abi as wasm_sb_bindgen::convert::WasmAbi>::Prim3,
+        arg0_4: <<String as wasm_sb_bindgen::convert::FromWasmAbi>::Abi as wasm_sb_bindgen::convert::WasmAbi>::Prim4,
+        arg1_1: <<usize as wasm_sb_bindgen::convert::FromWasmAbi>::Abi as wasm_sb_bindgen::convert::WasmAbi>::Prim1,
+        arg1_2: <<usize as wasm_sb_bindgen::convert::FromWasmAbi>::Abi as wasm_sb_bindgen::convert::WasmAbi>::Prim2,
+        arg1_3: <<usize as wasm_sb_bindgen::convert::FromWasmAbi>::Abi as wasm_sb_bindgen::convert::WasmAbi>::Prim3,
+        arg1_4: <<usize as wasm_sb_bindgen::convert::FromWasmAbi>::Abi as wasm_sb_bindgen::convert::WasmAbi>::Prim4,
+    ) -> wasm_sb_bindgen::convert::WasmRet<
+        <String as wasm_sb_bindgen::convert::ReturnWasmAbi>::Abi,
+    > {
+        let _ret = {
+            let arg0 = unsafe {
+                <String as wasm_sb_bindgen::convert::FromWasmAbi>::from_abi(
+                    <<String as wasm_sb_bindgen::convert::FromWasmAbi>::Abi as wasm_sb_bindgen::convert::WasmAbi>::join(
+                        arg0_1,
+                        arg0_2,
+                        arg0_3,
+                        arg0_4,
+                    ),
+                )
+            };
+            let arg1 = unsafe {
+                <usize as wasm_sb_bindgen::convert::FromWasmAbi>::from_abi(
+                    <<usize as wasm_sb_bindgen::convert::FromWasmAbi>::Abi as wasm_sb_bindgen::convert::WasmAbi>::join(
+                        arg1_1,
+                        arg1_2,
+                        arg1_3,
+                        arg1_4,
+                    ),
+                )
+            };
+            let _ret = woof(arg0, arg1);
+            _ret
+        };
+        <String as wasm_sb_bindgen::convert::ReturnWasmAbi>::return_abi(_ret).into()
+    }
+};
+#[automatically_derived]
+const _: () = {
+    #[no_mangle]
+    #[doc(hidden)]
+    pub extern "C" fn __wasm_sb_bindgen_describe_woof() {
+        use wasm_sb_bindgen::describe::*;
+        wasm_sb_bindgen::__rt::link_mem_intrinsics();
+        inform(FUNCTION)
+    }
+};
+static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+const _: () = {
+    #[rustc_std_internal_symbol]
+    unsafe fn __rust_alloc(size: usize, align: usize) -> *mut u8 {
+        ::core::alloc::GlobalAlloc::alloc(
+            &ALLOC,
+            ::core::alloc::Layout::from_size_align_unchecked(size, align),
+        )
+    }
+    #[rustc_std_internal_symbol]
+    unsafe fn __rust_dealloc(ptr: *mut u8, size: usize, align: usize) -> () {
+        ::core::alloc::GlobalAlloc::dealloc(
+            &ALLOC,
+            ptr,
+            ::core::alloc::Layout::from_size_align_unchecked(size, align),
+        )
+    }
+    #[rustc_std_internal_symbol]
+    unsafe fn __rust_realloc(
+        ptr: *mut u8,
+        size: usize,
+        align: usize,
+        new_size: usize,
+    ) -> *mut u8 {
+        ::core::alloc::GlobalAlloc::realloc(
+            &ALLOC,
+            ptr,
+            ::core::alloc::Layout::from_size_align_unchecked(size, align),
+            new_size,
+        )
+    }
+    #[rustc_std_internal_symbol]
+    unsafe fn __rust_alloc_zeroed(size: usize, align: usize) -> *mut u8 {
+        ::core::alloc::GlobalAlloc::alloc_zeroed(
+            &ALLOC,
+            ::core::alloc::Layout::from_size_align_unchecked(size, align),
+        )
+    }
+};
