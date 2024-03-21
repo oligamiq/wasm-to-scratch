@@ -17,6 +17,10 @@ pub fn expand(_attr: TokenStream, input: TokenStream) -> Result<TokenStream> {
     let fn_ast = ast.clone();
     let call_fn_name = fn_ast.sig.ident.clone();
     let fn_generic = fn_ast.sig.generics.clone();
+    if fn_generic.params.len() > 0 {
+        abort!(fn_generic.params, "generic functions are not supported");
+    }
+
     let fn_name = fn_ast.sig.ident.to_string();
     let fn_ast = match syn::parse2::<syn::Item>(quote! {
         #[allow(dead_code)]
@@ -123,7 +127,7 @@ pub fn expand(_attr: TokenStream, input: TokenStream) -> Result<TokenStream> {
         _ => unreachable!(),
     };
 
-    wrapper_fn_inner.sig.generics = fn_generic;
+    wrapper_fn_inner.sig.generics = fn_generic.clone();
 
     let wrapper_fn = quote! {
         #[automatically_derived]
@@ -135,16 +139,27 @@ pub fn expand(_attr: TokenStream, input: TokenStream) -> Result<TokenStream> {
     let describe_fn_name: Ident =
         syn::parse_str(&(String::from("__wasm_sb_bindgen_describe_") + &fn_name))?;
 
+    let describe_dyn_fn_inputs = inputs.iter().collect::<Punctuated<_, Comma>>();
+
+    let mut describe_fn_inner = match syn::parse2::<syn::Item>(quote! {
+        #[no_mangle]
+        #[doc(hidden)]
+        pub extern "C" fn #describe_fn_name() {
+            use wasm_sb_bindgen::describe::*;
+            wasm_sb_bindgen::__rt::link_mem_intrinsics();
+            <dyn Fn(#describe_dyn_fn_inputs) -> #wrapper_fn_outputs>::describe();
+        }
+    }) {
+        Ok(syn::Item::Fn(item)) => item,
+        _ => unreachable!(),
+    };
+
+    describe_fn_inner.sig.generics = fn_generic;
+
     let describe_fn = quote! {
         #[automatically_derived]
         const _: () = {
-            #[no_mangle]
-            #[doc(hidden)]
-            pub extern "C" fn #describe_fn_name() {
-                use wasm_sb_bindgen::describe::*;
-                wasm_sb_bindgen::__rt::link_mem_intrinsics();
-                inform(FUNCTION)
-            }
+            #describe_fn_inner
         };
     };
 

@@ -16,56 +16,59 @@ use crate::SbValue;
 
 #[repr(C)]
 pub struct WasmSlice {
-    pub ptr: u32,
-    pub len: u32,
+    pub ptr: f64,
+    pub len: f64,
 }
 
 impl WasmAbi for WasmSlice {
     /// `self.ptr`
-    type Prim1 = u32;
+    type Prim1 = f64;
     /// `self.len`
-    type Prim2 = u32;
+    type Prim2 = f64;
     type Prim3 = ();
     type Prim4 = ();
 
     #[inline]
-    fn split(self) -> (u32, u32, (), ()) {
+    fn split(self) -> (f64, f64, (), ()) {
         (self.ptr, self.len, (), ())
     }
 
     #[inline]
-    fn join(ptr: u32, len: u32, _: (), _: ()) -> Self {
+    fn join(ptr: f64, len: f64, _: (), _: ()) -> Self {
         Self { ptr, len }
     }
 }
 
 #[inline]
 fn null_slice() -> WasmSlice {
-    WasmSlice { ptr: 0, len: 0 }
+    WasmSlice {
+        ptr: 0f64,
+        len: 0f64,
+    }
 }
 
 // if_std! {
 pub struct WasmMutSlice {
     pub slice: WasmSlice,
-    pub idx: u32,
+    pub idx: f64,
 }
 
 impl WasmAbi for WasmMutSlice {
     /// `self.slice.ptr`
-    type Prim1 = u32;
+    type Prim1 = f64;
     /// `self.slice.len`
-    type Prim2 = u32;
+    type Prim2 = f64;
     /// `self.idx`
-    type Prim3 = u32;
+    type Prim3 = f64;
     type Prim4 = ();
 
     #[inline]
-    fn split(self) -> (u32, u32, u32, ()) {
+    fn split(self) -> (f64, f64, f64, ()) {
         (self.slice.ptr, self.slice.len, self.idx, ())
     }
 
     #[inline]
-    fn join(ptr: u32, len: u32, idx: u32, _: ()) -> Self {
+    fn join(ptr: f64, len: f64, idx: f64, _: ()) -> Self {
         Self {
             slice: WasmSlice { ptr, len },
             idx,
@@ -128,7 +131,7 @@ macro_rules! vectors {
                     mem::forget(vector);
                     WasmSlice {
                         ptr: ptr.into_abi(),
-                        len: len as u32,
+                        len: len as f64,
                     }
                 }
             }
@@ -152,7 +155,7 @@ macro_rules! vectors {
             fn into_abi(self) -> WasmSlice {
                 WasmSlice {
                     ptr: self.as_ptr().into_abi(),
-                    len: self.len() as u32,
+                    len: self.len() as f64,
                 }
             }
         }
@@ -220,13 +223,13 @@ impl WasmDescribeVector for String {
         inform(VECTOR);
         inform(NAMED_EXTERNREF);
         // Trying to use an actual loop for this breaks the wasm interpreter.
-        inform(6);
-        inform('s' as u32);
-        inform('t' as u32);
-        inform('r' as u32);
-        inform('i' as u32);
-        inform('n' as u32);
-        inform('g' as u32);
+        inform(6f64);
+        inform('s' as u32 as f64);
+        inform('t' as u32 as f64);
+        inform('r' as u32 as f64);
+        inform('i' as u32 as f64);
+        inform('n' as u32 as f64);
+        inform('g' as u32 as f64);
     }
 }
 
@@ -293,7 +296,7 @@ where
 {
     #[inline]
     fn is_none(abi: &WasmSlice) -> bool {
-        abi.ptr == 0
+        abi.ptr == 0f64
     }
 }
 
@@ -327,7 +330,7 @@ impl FromWasmAbi for String {
 impl OptionFromWasmAbi for String {
     #[inline]
     fn is_none(slice: &WasmSlice) -> bool {
-        slice.ptr == 0
+        slice.ptr == 0f64
     }
 }
 // }
@@ -403,7 +406,7 @@ where
     Self: FromWasmAbi<Abi = WasmSlice>,
 {
     fn is_none(slice: &WasmSlice) -> bool {
-        slice.ptr == 0
+        slice.ptr == 0f64
     }
 }
 
@@ -417,7 +420,7 @@ impl VectorIntoWasmAbi for SbValue {
         mem::forget(vector);
         WasmSlice {
             ptr: ptr.into_abi(),
-            len: len as u32,
+            len: len as f64,
         }
     }
 }
@@ -446,7 +449,7 @@ where
         mem::forget(vector);
         WasmSlice {
             ptr: ptr.into_abi(),
-            len: len as u32,
+            len: len as f64,
         }
     }
 }

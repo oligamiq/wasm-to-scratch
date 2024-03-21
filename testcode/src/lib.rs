@@ -1,10 +1,10 @@
 #![no_std]
 
-extern crate wee_alloc;
 extern crate alloc;
+extern crate wee_alloc;
 
-use alloc::string::String;
 use alloc::format;
+use alloc::string::String;
 use wasm_bindgen::prelude::*;
 
 // // #[wasm_bindgen]
@@ -17,7 +17,6 @@ use wasm_bindgen::prelude::*;
 // // pub fn greet() {
 // //     log("Hello, world!");
 // // }
-
 
 #[wasm_bindgen]
 pub fn greet() -> String {

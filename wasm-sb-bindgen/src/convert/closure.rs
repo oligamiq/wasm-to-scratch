@@ -16,7 +16,7 @@ macro_rules! stack_closures_only {
             fn into_abi(self) -> WasmSlice {
                 unsafe {
                     let (a, b): (usize, usize) = mem::transmute(self);
-                    WasmSlice { ptr: a as u32, len: b as u32 }
+                    WasmSlice { ptr: a as f64, len: b as f64 }
                 }
             }
         }
@@ -27,7 +27,7 @@ macro_rules! stack_closures_only {
         {
             fn describe() {
                 inform(FUNCTION);
-                inform($invoke::<$($var,)* R> as u32);
+                inform($invoke::<$($var,)* R> as u32 as f64);
                 inform($cnt);
                 $(<$var as WasmDescribe>::describe();)*
                 <R as WasmDescribe>::describe();
@@ -44,7 +44,7 @@ macro_rules! stack_closures_only {
             fn into_abi(self) -> WasmSlice {
                 unsafe {
                     let (a, b): (usize, usize) = mem::transmute(self);
-                    WasmSlice { ptr: a as u32, len: b as u32 }
+                    WasmSlice { ptr: a as f64, len: b as f64 }
                 }
             }
         }
@@ -55,7 +55,7 @@ macro_rules! stack_closures_only {
         {
             fn describe() {
                 inform(FUNCTION);
-                inform($invoke_mut::<$($var,)* R> as u32);
+                inform($invoke_mut::<$($var,)* R> as u32 as f64);
                 inform($cnt);
                 $(<$var as WasmDescribe>::describe();)*
                 <R as WasmDescribe>::describe();
@@ -71,15 +71,15 @@ macro_rules! stack_closures_only {
 // R: ReturnWasmAbi,
 
 stack_closures_only! {
-    (0 invoke0 invoke0_mut)
-    (1 invoke1 invoke1_mut A)
-    (2 invoke2 invoke2_mut A B)
-    (3 invoke3 invoke3_mut A B C)
-    (4 invoke4 invoke4_mut A B C D)
-    (5 invoke5 invoke5_mut A B C D E)
-    (6 invoke6 invoke6_mut A B C D E F)
-    (7 invoke7 invoke7_mut A B C D E F G)
-    (8 invoke8 invoke8_mut A B C D E F G H)
+    (0f64 invoke0 invoke0_mut)
+    (1f64 invoke1 invoke1_mut A)
+    (2f64 invoke2 invoke2_mut A B)
+    (3f64 invoke3 invoke3_mut A B C)
+    (4f64 invoke4 invoke4_mut A B C D)
+    (5f64 invoke5 invoke5_mut A B C D E)
+    (6f64 invoke6 invoke6_mut A B C D E F)
+    (7f64 invoke7 invoke7_mut A B C D E F G)
+    (8f64 invoke8 invoke8_mut A B C D E F G H)
 }
 
 macro_rules! stack_closures {
@@ -161,8 +161,8 @@ where
         unsafe {
             let (a, b): (usize, usize) = mem::transmute(self);
             WasmSlice {
-                ptr: a as u32,
-                len: b as u32,
+                ptr: a as f64,
+                len: b as f64,
             }
         }
     }
@@ -197,8 +197,8 @@ where
 {
     fn describe() {
         inform(FUNCTION);
-        inform(invoke1_ref::<A, R> as u32);
-        inform(1);
+        inform(invoke1_ref::<A, R> as u32 as f64);
+        inform(1f64);
         <&A as WasmDescribe>::describe();
         <R as WasmDescribe>::describe();
         <R as WasmDescribe>::describe();
@@ -216,8 +216,8 @@ where
         unsafe {
             let (a, b): (usize, usize) = mem::transmute(self);
             WasmSlice {
-                ptr: a as u32,
-                len: b as u32,
+                ptr: a as f64,
+                len: b as f64,
             }
         }
     }
@@ -252,8 +252,8 @@ where
 {
     fn describe() {
         inform(FUNCTION);
-        inform(invoke1_mut_ref::<A, R> as u32);
-        inform(1);
+        inform(invoke1_mut_ref::<A, R> as u32 as f64);
+        inform(1f64);
         <&A as WasmDescribe>::describe();
         <R as WasmDescribe>::describe();
         <R as WasmDescribe>::describe();

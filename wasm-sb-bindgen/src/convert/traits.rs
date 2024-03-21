@@ -87,11 +87,6 @@ pub trait OptionFromWasmAbi: FromWasmAbi {
 
 pub unsafe trait WasmPrimitive: Default {}
 
-unsafe impl WasmPrimitive for u32 {}
-unsafe impl WasmPrimitive for i32 {}
-unsafe impl WasmPrimitive for u64 {}
-unsafe impl WasmPrimitive for i64 {}
-unsafe impl WasmPrimitive for f32 {}
 unsafe impl WasmPrimitive for f64 {}
 unsafe impl WasmPrimitive for () {}
 
@@ -118,7 +113,7 @@ pub trait ReturnWasmAbi: WasmDescribe {
 }
 
 impl<T: IntoWasmAbi> ReturnWasmAbi for T {
-    type Abi = T::Abi;
+    type Abi = <T as IntoWasmAbi>::Abi;
 
     #[inline]
     fn return_abi(self) -> Self::Abi {
@@ -151,10 +146,10 @@ pub trait VectorFromWasmAbi: WasmDescribeVector + Sized {
 
 #[repr(C)]
 pub struct WasmRet<T: WasmAbi> {
-    prim1: T::Prim1,
-    prim2: T::Prim2,
-    prim3: T::Prim3,
-    prim4: T::Prim4,
+    prim1: <T as WasmAbi>::Prim1,
+    prim2: <T as WasmAbi>::Prim2,
+    prim3: <T as WasmAbi>::Prim3,
+    prim4: <T as WasmAbi>::Prim4,
 }
 
 impl<T: WasmAbi> From<T> for WasmRet<T> {
@@ -172,7 +167,7 @@ impl<T: WasmAbi> From<T> for WasmRet<T> {
 impl<T: WasmAbi> WasmRet<T> {
     /// Joins the components of this `WasmRet` back into the type they represent.
     pub fn join(self) -> T {
-        T::join(self.prim1, self.prim2, self.prim3, self.prim4)
+        <T as WasmAbi>::join(self.prim1, self.prim2, self.prim3, self.prim4)
     }
 }
 

@@ -2,6 +2,7 @@ use sb_sbity::target::SpriteOrStage;
 use scratch::rewrite_dependency::rewrite_list;
 use scratch::test_data::test_project;
 
+use scratch::wasm_binary;
 use util::get_preview_rect_from_block;
 
 use crate::scratch::block::procedures_definition::generate_func_block;
@@ -9,6 +10,7 @@ use crate::scratch::test_data::test_wasm_binary;
 
 pub mod scratch;
 pub mod util;
+pub mod wasm;
 
 fn main() {
     let mut project = test_project().unwrap();
@@ -31,7 +33,10 @@ fn main() {
         let (left_x, _right_x, top_y, _bottom_y) = get_preview_rect_from_block(blocks);
         // println!("{:#?}", blocks);
 
-        let data = test_wasm_binary().unwrap();
+        // let data = test_wasm_binary().unwrap();
+        let data =
+            wasm_binary("./target/wasm32-unknown-unknown/release/wasm_sb_bindgen_testcode.wasm")
+                .unwrap();
         let wain = match wain_syntax_binary::parse(&data) {
             Ok(wasm) => wasm,
             Err(_) => {
@@ -40,7 +45,9 @@ fn main() {
             }
         };
 
-        let module = wain.module;
+        let mut module = wain.module;
+
+        let ty = wasm::get_ty(&mut module);
 
         let functions_count = module.funcs.len() * 2;
 

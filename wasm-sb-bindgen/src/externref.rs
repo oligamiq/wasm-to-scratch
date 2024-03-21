@@ -3,10 +3,10 @@ use std::{cell::Cell, cmp::max, slice};
 use crate::{externs, SbValue};
 
 externs! {
-    #[link(wasm_import_module = "__wbindgen_externref_xform__")]
+    #[link(wasm_import_module = "__wasm_sb_bindgen_placeholder__")]
     extern "C" {
-        fn __wbindgen_externref_table_grow(delta: usize) -> i32;
-        fn __wbindgen_externref_table_set_null(idx: usize) -> ();
+        fn __wasm_sb_bindgen_externref_table_grow(delta: usize) -> i32;
+        fn __wasm_sb_bindgen_externref_table_set_null(idx: usize) -> ();
     }
 }
 
@@ -31,7 +31,7 @@ impl Slab {
             let curr_len = self.data.len();
             if curr_len == self.data.capacity() {
                 let extra = max(128, curr_len);
-                let r = unsafe { __wbindgen_externref_table_grow(extra) };
+                let r = unsafe { __wasm_sb_bindgen_externref_table_grow(extra) };
                 if r == -1 {
                     internal_error("table grow failure")
                 }
@@ -125,7 +125,7 @@ pub extern "C" fn __externref_table_dealloc(idx: usize) {
     // clear this value from the table so while the table slot is un-allocated
     // we don't keep around a strong reference to a potentially large object
     unsafe {
-        __wbindgen_externref_table_set_null(idx);
+        __wasm_sb_bindgen_externref_table_set_null(idx);
     }
     HEAP_SLAB
         .try_with(|slot| {

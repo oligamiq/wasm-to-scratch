@@ -7,16 +7,16 @@ use crate::{SbError, SbValue, __wasm_sb_bindgen_describe};
 use super::cast::SbObject;
 
 #[inline(always)] // see the wasm-interpreter crate
-pub fn inform(a: u32) {
+pub fn inform(a: f64) {
     unsafe { __wasm_sb_bindgen_describe(a) }
 }
 
 macro_rules! tys {
-    ($($a:ident)*) => (tys! { @ ($($a)*) 0 });
+    ($($a:ident)*) => (tys! { @ ($($a)*) 0f64 });
     (@ () $v:expr) => {};
     (@ ($a:ident $($b:ident)*) $v:expr) => {
-        pub const $a: u32 = $v;
-        tys!(@ ($($b)*) $v+1);
+        pub const $a: f64 = $v;
+        tys!(@ ($($b)*) $v+1f64);
     }
 }
 
@@ -34,7 +34,6 @@ tys! {
     BOOLEAN
     FUNCTION
     CLOSURE
-    CACHED_STRING
     STRING
     REF
     REFMUT
@@ -49,6 +48,7 @@ tys! {
     OPTIONAL
     RESULT
     UNIT
+    NONNULL
 }
 pub trait WasmDescribe {
     fn describe();

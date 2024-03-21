@@ -19,7 +19,7 @@ pub struct Closure<T: ?Sized> {
 
 union FatPtr<T: ?Sized> {
     ptr: *mut T,
-    fields: (usize, usize),
+    fields: (f64, f64),
 }
 
 impl<T> Closure<T>
@@ -110,8 +110,12 @@ where
         }
 
         #[inline(never)]
-        unsafe fn breaks_if_inlined<T: WasmClosure + ?Sized>(a: usize, b: usize) -> u32 {
-            super::__wasm_sb_bindgen_describe_closure(a as u32, b as u32, describe::<T> as u32)
+        unsafe fn breaks_if_inlined<T: WasmClosure + ?Sized>(a: f64, b: f64) -> f64 {
+            super::__wasm_sb_bindgen_describe_closure(
+                a as f64,
+                b as f64,
+                describe::<T> as u32 as f64,
+            )
         }
 
         let idx = unsafe { breaks_if_inlined::<T>(a, b) };
@@ -239,9 +243,9 @@ impl<'a, T> IntoWasmAbi for &'a Closure<T>
 where
     T: WasmClosure + ?Sized,
 {
-    type Abi = u32;
+    type Abi = f64;
 
-    fn into_abi(self) -> u32 {
+    fn into_abi(self) -> f64 {
         (&*self.sb).into_abi()
     }
 }
@@ -251,7 +255,7 @@ where
     T: WasmClosure + ?Sized,
 {
     fn none() -> Self::Abi {
-        0
+        0f64
     }
 }
 
@@ -282,7 +286,7 @@ where
         unsafe {
             // this will implicitly drop our strong reference in addition to
             // invalidating all future invocations of the closure
-            if super::__wasm_sb_bindgen_cb_drop(self.sb.idx) != 0 {
+            if super::__wasm_sb_bindgen_cb_drop(self.sb.idx) != 0f64 {
                 ManuallyDrop::drop(&mut self.data);
             }
         }
@@ -314,8 +318,8 @@ macro_rules! doit {
             fn describe() {
                 #[allow(non_snake_case)]
                 unsafe extern "C" fn invoke<$($var: FromWasmAbi,)* R: ReturnWasmAbi>(
-                    a: usize,
-                    b: usize,
+                    a: f64,
+                    b: f64,
                     $(
                     $arg1: <$var::Abi as WasmAbi>::Prim1,
                     $arg2: <$var::Abi as WasmAbi>::Prim2,
@@ -323,7 +327,7 @@ macro_rules! doit {
                     $arg4: <$var::Abi as WasmAbi>::Prim4,
                     )*
                 ) -> WasmRet<R::Abi> {
-                    if a == 0 {
+                    if a == 0f64 {
                         throw_str("closure invoked after being dropped");
                     }
                     // Make sure all stack variables are converted before we
@@ -340,25 +344,25 @@ macro_rules! doit {
                     ret.return_abi().into()
                 }
 
-                inform(invoke::<$($var,)* R> as u32);
+                inform(invoke::<$($var,)* R> as u32 as f64);
 
                 unsafe extern fn destroy<$($var: FromWasmAbi,)* R: ReturnWasmAbi>(
-                    a: usize,
-                    b: usize,
+                    a: f64,
+                    b: f64,
                 ) {
                     // This can be called by the JS glue in erroneous situations
                     // such as when the closure has already been destroyed. If
                     // that's the case let's not make things worse by
                     // segfaulting and/or asserting, so just ignore null
                     // pointers.
-                    if a == 0 {
+                    if a == 0f64 {
                         return;
                     }
                     drop(Box::from_raw(FatPtr::<dyn Fn($($var,)*) -> R> {
                         fields: (a, b)
                     }.ptr));
                 }
-                inform(destroy::<$($var,)* R> as u32);
+                inform(destroy::<$($var,)* R> as u32 as f64);
 
                 <&Self>::describe();
             }
@@ -371,8 +375,8 @@ macro_rules! doit {
             fn describe() {
                 #[allow(non_snake_case)]
                 unsafe extern "C" fn invoke<$($var: FromWasmAbi,)* R: ReturnWasmAbi>(
-                    a: usize,
-                    b: usize,
+                    a: f64,
+                    b: f64,
                     $(
                     $arg1: <$var::Abi as WasmAbi>::Prim1,
                     $arg2: <$var::Abi as WasmAbi>::Prim2,
@@ -380,7 +384,7 @@ macro_rules! doit {
                     $arg4: <$var::Abi as WasmAbi>::Prim4,
                     )*
                 ) -> WasmRet<R::Abi> {
-                    if a == 0 {
+                    if a == 0f64 {
                         throw_str("closure invoked recursively or after being dropped");
                     }
                     // Make sure all stack variables are converted before we
@@ -398,21 +402,21 @@ macro_rules! doit {
                     ret.return_abi().into()
                 }
 
-                inform(invoke::<$($var,)* R> as u32);
+                inform(invoke::<$($var,)* R> as u32 as f64);
 
                 unsafe extern fn destroy<$($var: FromWasmAbi,)* R: ReturnWasmAbi>(
-                    a: usize,
-                    b: usize,
+                    a: f64,
+                    b: f64,
                 ) {
                     // See `Fn()` above for why we simply return
-                    if a == 0 {
+                    if a == 0f64 {
                         return;
                     }
                     drop(Box::from_raw(FatPtr::<dyn FnMut($($var,)*) -> R> {
                         fields: (a, b)
                     }.ptr));
                 }
-                inform(destroy::<$($var,)* R> as u32);
+                inform(destroy::<$($var,)* R> as u32 as f64);
 
                 <&mut Self>::describe();
             }
@@ -517,8 +521,8 @@ doit! {
 //     fn describe() {
 //         #[allow(non_snake_case)]
 //         unsafe extern "C" fn invoke<A: RefFromWasmAbi, R: ReturnWasmAbi>(
-//             a: usize,
-//             b: usize,
+//             a: f64,
+//             b: f64,
 //             arg1: <A::Abi as WasmAbi>::Prim1,
 //             arg2: <A::Abi as WasmAbi>::Prim2,
 //             arg3: <A::Abi as WasmAbi>::Prim3,
@@ -540,7 +544,7 @@ doit! {
 
 //         inform(invoke::<A, R> as u32);
 
-//         unsafe extern "C" fn destroy<A: RefFromWasmAbi, R: ReturnWasmAbi>(a: usize, b: usize) {
+//         unsafe extern "C" fn destroy<A: RefFromWasmAbi, R: ReturnWasmAbi>(a: f64, b: f64) {
 //             // See `Fn()` above for why we simply return
 //             if a == 0 {
 //                 return;
@@ -555,19 +559,27 @@ doit! {
 //     }
 // }
 
-// trait WasmClosureFirst {}
-// // trait WasmClosureCommon {}
+trait WasmClosureFirst {}
 
-// // impl<T> WasmClosureCommon for T where T: !RefFromWasmAbi {}
+// impl<T> WasmClosureCommon for T where T: !RefFromWasmAbi {}
 
 // pub trait WasmClosureCommon: !WasmClosureFirst {}
 
-// // impl <A, R> WasmClosureCommon for dyn Fn(A) -> R + 'static
-// // where
-// //     A: FromWasmAbi + 'static,
-// //     R: ReturnWasmAbi + 'static,
-// // {
-// // }
+trait WasmClosureCommon {}
+
+impl<A, R> WasmClosureCommon for dyn Fn(A) -> R + 'static
+where
+    A: FromWasmAbi + 'static,
+    R: ReturnWasmAbi + 'static,
+{
+}
+
+impl<A, R> WasmClosureCommon for dyn Fn(&A) -> R
+where
+    A: RefFromWasmAbi,
+    R: ReturnWasmAbi + 'static,
+{
+}
 
 unsafe impl<A, R> WasmClosure for dyn Fn(&A) -> R
 where
@@ -577,14 +589,14 @@ where
     fn describe() {
         #[allow(non_snake_case)]
         unsafe extern "C" fn invoke<A: RefFromWasmAbi, R: ReturnWasmAbi>(
-            a: usize,
-            b: usize,
+            a: f64,
+            b: f64,
             arg1: <A::Abi as WasmAbi>::Prim1,
             arg2: <A::Abi as WasmAbi>::Prim2,
             arg3: <A::Abi as WasmAbi>::Prim3,
             arg4: <A::Abi as WasmAbi>::Prim4,
         ) -> WasmRet<R::Abi> {
-            if a == 0 {
+            if a == 0f64 {
                 throw_str("closure invoked after being dropped");
             }
             // Make sure all stack variables are converted before we
@@ -598,18 +610,18 @@ where
             ret.return_abi().into()
         }
 
-        inform(invoke::<A, R> as u32);
+        inform(invoke::<A, R> as u32 as f64);
 
-        unsafe extern "C" fn destroy<A: RefFromWasmAbi, R: ReturnWasmAbi>(a: usize, b: usize) {
+        unsafe extern "C" fn destroy<A: RefFromWasmAbi, R: ReturnWasmAbi>(a: f64, b: f64) {
             // See `Fn()` above for why we simply return
-            if a == 0 {
+            if a == 0f64 {
                 return;
             }
             drop(Box::from_raw(
                 FatPtr::<dyn Fn(&A) -> R> { fields: (a, b) }.ptr,
             ));
         }
-        inform(destroy::<A, R> as u32);
+        inform(destroy::<A, R> as u32 as f64);
 
         <&Self>::describe();
     }
@@ -623,14 +635,14 @@ where
     fn describe() {
         #[allow(non_snake_case)]
         unsafe extern "C" fn invoke<A: RefFromWasmAbi, R: ReturnWasmAbi>(
-            a: usize,
-            b: usize,
+            a: f64,
+            b: f64,
             arg1: <A::Abi as WasmAbi>::Prim1,
             arg2: <A::Abi as WasmAbi>::Prim2,
             arg3: <A::Abi as WasmAbi>::Prim3,
             arg4: <A::Abi as WasmAbi>::Prim4,
         ) -> WasmRet<R::Abi> {
-            if a == 0 {
+            if a == 0f64 {
                 throw_str("closure invoked recursively or after being dropped");
             }
             // Make sure all stack variables are converted before we
@@ -645,18 +657,18 @@ where
             ret.return_abi().into()
         }
 
-        inform(invoke::<A, R> as u32);
+        inform(invoke::<A, R> as u32 as f64);
 
-        unsafe extern "C" fn destroy<A: RefFromWasmAbi, R: ReturnWasmAbi>(a: usize, b: usize) {
+        unsafe extern "C" fn destroy<A: RefFromWasmAbi, R: ReturnWasmAbi>(a: f64, b: f64) {
             // See `Fn()` above for why we simply return
-            if a == 0 {
+            if a == 0f64 {
                 return;
             }
             drop(Box::from_raw(
                 FatPtr::<dyn FnMut(&A) -> R> { fields: (a, b) }.ptr,
             ));
         }
-        inform(destroy::<A, R> as u32);
+        inform(destroy::<A, R> as u32 as f64);
 
         <&mut Self>::describe();
     }

@@ -4,7 +4,7 @@ pub mod externref;
 use crate::convert::{slices::WasmSlice, WasmRet};
 pub use convert::describe;
 pub use convert::WasmDescribe;
-use convert::{cast::SbCast, FromWasmAbi, TryFromSbValue};
+use convert::{cast::SbCast, FromWasmAbi, TryFromSbValue, Wasm8Bytes};
 use std::{
     fmt, marker, mem,
     ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Not, Rem, Shl, Shr, Sub},
@@ -38,16 +38,16 @@ macro_rules! externs {
 }
 
 pub struct SbValue {
-    pub(crate) idx: u32,
+    pub(crate) idx: f64,
     _marker: marker::PhantomData<*mut u8>, // not at all threadsafe
 }
 
-const SBIDX_OFFSET: u32 = 128; // keep in sync with sb/mod.rs
-const SBIDX_UNDEFINED: u32 = SBIDX_OFFSET;
-const SBIDX_NULL: u32 = SBIDX_OFFSET + 1;
-const SBIDX_TRUE: u32 = SBIDX_OFFSET + 2;
-const SBIDX_FALSE: u32 = SBIDX_OFFSET + 3;
-const SBIDX_RESERVED: u32 = SBIDX_OFFSET + 4;
+const SBIDX_OFFSET: f64 = 128f64; // keep in sync with sb/mod.rs
+const SBIDX_UNDEFINED: f64 = SBIDX_OFFSET;
+const SBIDX_NULL: f64 = SBIDX_OFFSET + 1f64;
+const SBIDX_TRUE: f64 = SBIDX_OFFSET + 2f64;
+const SBIDX_FALSE: f64 = SBIDX_OFFSET + 3f64;
+const SBIDX_RESERVED: f64 = SBIDX_OFFSET + 4f64;
 
 impl SbValue {
     /// The `null` SB value constant.
@@ -63,7 +63,7 @@ impl SbValue {
     pub const FALSE: SbValue = SbValue::_new(SBIDX_FALSE);
 
     #[inline]
-    const fn _new(idx: u32) -> SbValue {
+    const fn _new(idx: f64) -> SbValue {
         SbValue {
             idx,
             _marker: marker::PhantomData,
@@ -224,7 +224,7 @@ impl SbValue {
     /// Tests whether this SB value is a SB string.
     #[inline]
     pub fn is_string(&self) -> bool {
-        unsafe { __wasm_sb_bindgen_is_string(self.idx) == 1 }
+        unsafe { __wasm_sb_bindgen_is_string(self.idx) == 1f64 }
     }
 
     /// If this SB value is a string value, this function copies the SB string
@@ -261,10 +261,13 @@ impl SbValue {
     #[inline]
     pub fn as_bool(&self) -> Option<bool> {
         unsafe {
-            match __wasm_sb_bindgen_boolean_get(self.idx) {
-                0 => Some(false),
-                1 => Some(true),
-                _ => None,
+            let b = __wasm_sb_bindgen_boolean_get(self.idx);
+            if b == 0f64 {
+                Some(false)
+            } else if b == 1f64 {
+                Some(true)
+            } else {
+                None
             }
         }
     }
@@ -272,43 +275,43 @@ impl SbValue {
     /// Tests whether this SB value is `null`
     #[inline]
     pub fn is_null(&self) -> bool {
-        unsafe { __wasm_sb_bindgen_is_null(self.idx) == 1 }
+        unsafe { __wasm_sb_bindgen_is_null(self.idx) == 1f64 }
     }
 
     /// Tests whether this SB value is `undefined`
     #[inline]
     pub fn is_undefined(&self) -> bool {
-        unsafe { __wasm_sb_bindgen_is_undefined(self.idx) == 1 }
+        unsafe { __wasm_sb_bindgen_is_undefined(self.idx) == 1f64 }
     }
 
     /// Tests whether the type of this SB value is `symbol`
     #[inline]
     pub fn is_symbol(&self) -> bool {
-        unsafe { __wasm_sb_bindgen_is_symbol(self.idx) == 1 }
+        unsafe { __wasm_sb_bindgen_is_symbol(self.idx) == 1f64 }
     }
 
     /// Tests whether `typeof self == "object" && self !== null`.
     #[inline]
     pub fn is_object(&self) -> bool {
-        unsafe { __wasm_sb_bindgen_is_object(self.idx) == 1 }
+        unsafe { __wasm_sb_bindgen_is_object(self.idx) == 1f64 }
     }
 
     /// Tests whether this SB value is an instance of Array.
     #[inline]
     pub fn is_array(&self) -> bool {
-        unsafe { __wasm_sb_bindgen_is_array(self.idx) == 1 }
+        unsafe { __wasm_sb_bindgen_is_array(self.idx) == 1f64 }
     }
 
     /// Tests whether the type of this SB value is `function`.
     #[inline]
     pub fn is_function(&self) -> bool {
-        unsafe { __wasm_sb_bindgen_is_function(self.idx) == 1 }
+        unsafe { __wasm_sb_bindgen_is_function(self.idx) == 1f64 }
     }
 
     /// Tests whether the type of this SB value is `bigint`.
     #[inline]
     pub fn is_bigint(&self) -> bool {
-        unsafe { __wasm_sb_bindgen_is_bigint(self.idx) == 1 }
+        unsafe { __wasm_sb_bindgen_is_bigint(self.idx) == 1f64 }
     }
 
     /// Applies the unary `typeof` SB operator on a `SbValue`.
@@ -324,7 +327,7 @@ impl SbValue {
     /// [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in)
     #[inline]
     pub fn sb_in(&self, obj: &SbValue) -> bool {
-        unsafe { __wasm_sb_bindgen_in(self.idx, obj.idx) == 1 }
+        unsafe { __wasm_sb_bindgen_in(self.idx, obj.idx) == 1f64 }
     }
 
     /// Tests whether the value is ["truthy"].
@@ -340,7 +343,7 @@ impl SbValue {
     /// ["falsy"]: https://developer.mozilla.org/en-US/docs/Glossary/Falsy
     #[inline]
     pub fn is_falsy(&self) -> bool {
-        unsafe { __wasm_sb_bindgen_is_falsy(self.idx) == 1 }
+        unsafe { __wasm_sb_bindgen_is_falsy(self.idx) == 1f64 }
     }
 
     /// Get a string representation of the JavaScript object for debugging.
@@ -359,7 +362,7 @@ impl SbValue {
     /// [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Equality)
     #[inline]
     pub fn loose_eq(&self, other: &Self) -> bool {
-        unsafe { __wasm_sb_bindgen_sbval_loose_eq(self.idx, other.idx) != 0 }
+        unsafe { __wasm_sb_bindgen_sbval_loose_eq(self.idx, other.idx) != 0f64 }
     }
 
     /// Applies the unary `~` SB operator on a `SbValue`.
@@ -374,7 +377,7 @@ impl SbValue {
     ///
     /// [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Unsigned_right_shift)
     #[inline]
-    pub fn unsigned_shr(&self, rhs: &Self) -> u32 {
+    pub fn unsigned_shr(&self, rhs: &Self) -> f64 {
         unsafe { __wasm_sb_bindgen_unsigned_shr(self.idx, rhs.idx) }
     }
 
@@ -399,7 +402,7 @@ impl SbValue {
     /// [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Less_than)
     #[inline]
     pub fn lt(&self, other: &Self) -> bool {
-        unsafe { __wasm_sb_bindgen_lt(self.idx, other.idx) == 1 }
+        unsafe { __wasm_sb_bindgen_lt(self.idx, other.idx) == 1f64 }
     }
 
     /// Applies the binary `<=` SB operator on the two `SbValue`s.
@@ -407,7 +410,7 @@ impl SbValue {
     /// [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Less_than_or_equal)
     #[inline]
     pub fn le(&self, other: &Self) -> bool {
-        unsafe { __wasm_sb_bindgen_le(self.idx, other.idx) == 1 }
+        unsafe { __wasm_sb_bindgen_le(self.idx, other.idx) == 1f64 }
     }
 
     /// Applies the binary `>=` SB operator on the two `SbValue`s.
@@ -415,7 +418,7 @@ impl SbValue {
     /// [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Greater_than_or_equal)
     #[inline]
     pub fn ge(&self, other: &Self) -> bool {
-        unsafe { __wasm_sb_bindgen_ge(self.idx, other.idx) == 1 }
+        unsafe { __wasm_sb_bindgen_ge(self.idx, other.idx) == 1f64 }
     }
 
     /// Applies the binary `>` SB operator on the two `SbValue`s.
@@ -423,7 +426,7 @@ impl SbValue {
     /// [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Greater_than)
     #[inline]
     pub fn gt(&self, other: &Self) -> bool {
-        unsafe { __wasm_sb_bindgen_gt(self.idx, other.idx) == 1 }
+        unsafe { __wasm_sb_bindgen_gt(self.idx, other.idx) == 1f64 }
     }
 
     /// Applies the unary `+` SB operator on a `SbValue`. Can throw.
@@ -441,7 +444,7 @@ impl PartialEq for SbValue {
     /// [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Strict_equality)
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        unsafe { __wasm_sb_bindgen_sbval_eq(self.idx, other.idx) != 0 }
+        unsafe { __wasm_sb_bindgen_sbval_eq(self.idx, other.idx) != 0f64 }
     }
 }
 
@@ -874,7 +877,10 @@ macro_rules! big_numbers {
 }
 
 fn bigint_get_as_i64(v: &SbValue) -> Option<i64> {
-    unsafe { __wasm_sb_bindgen_bigint_get_as_i64(v.idx).join() }
+    match unsafe { __wasm_sb_bindgen_bigint_get_as_i64(v.idx) }.join() {
+        Some(i) => Some(unsafe { <i64 as FromWasmAbi>::from_abi(i) }),
+        None => None,
+    }
 }
 
 macro_rules! try_from_for_num64 {
@@ -939,18 +945,18 @@ big_numbers! {
 
 // `usize` and `isize` have to be treated a bit specially, because we know that
 // they're 32-bit but the compiler conservatively assumes they might be bigger.
-// So, we have to manually forward to the `u32`/`i32` versions.
+// So, we have to manually forward to the `f64`/`i32` versions.
 impl PartialEq<usize> for SbValue {
     #[inline]
     fn eq(&self, other: &usize) -> bool {
-        *self == (*other as u32)
+        *self == (*other as f64)
     }
 }
 
 impl From<usize> for SbValue {
     #[inline]
     fn from(n: usize) -> Self {
-        Self::from(n as u32)
+        Self::from(n as f64)
     }
 }
 
@@ -971,85 +977,90 @@ impl From<isize> for SbValue {
 externs! {
     #[link(wasm_import_module = "__wasm_sb_bindgen_placeholder__")]
     extern "C" {
-        fn __wasm_sb_bindgen_object_clone_ref(idx: u32) -> u32;
-        fn __wasm_sb_bindgen_object_drop_ref(idx: u32) -> ();
+        fn __wasm_sb_bindgen_object_clone_ref(idx: f64) -> f64;
+        fn __wasm_sb_bindgen_object_drop_ref(idx: f64) -> ();
 
-        fn __wasm_sb_bindgen_string_new(ptr: *const u8, len: usize) -> u32;
-        fn __wasm_sb_bindgen_number_new(f: f64) -> u32;
-        fn __wasm_sb_bindgen_bigint_from_str(ptr: *const u8, len: usize) -> u32;
-        fn __wasm_sb_bindgen_bigint_from_i64(n: i64) -> u32;
-        fn __wasm_sb_bindgen_bigint_from_u64(n: u64) -> u32;
-        fn __wasm_sb_bindgen_bigint_from_i128(hi: i64, lo: u64) -> u32;
-        fn __wasm_sb_bindgen_bigint_from_u128(hi: u64, lo: u64) -> u32;
-        fn __wasm_sb_bindgen_symbol_named_new(ptr: *const u8, len: usize) -> u32;
-        fn __wasm_sb_bindgen_symbol_anonymous_new() -> u32;
+        fn __wasm_sb_bindgen_string_new(ptr: *const u8, len: usize) -> f64;
+        fn __wasm_sb_bindgen_number_new(f: f64) -> f64;
+        fn __wasm_sb_bindgen_bigint_from_str(ptr: *const u8, len: usize) -> f64;
+        fn __wasm_sb_bindgen_bigint_from_i64(n: i64) -> f64;
+        fn __wasm_sb_bindgen_bigint_from_u64(n: u64) -> f64;
+        fn __wasm_sb_bindgen_bigint_from_i128(hi: i64, lo: u64) -> f64;
+        fn __wasm_sb_bindgen_bigint_from_u128(hi: u64, lo: u64) -> f64;
+        fn __wasm_sb_bindgen_symbol_named_new(ptr: *const u8, len: usize) -> f64;
+        fn __wasm_sb_bindgen_symbol_anonymous_new() -> f64;
 
-        fn __wasm_sb_bindgen_externref_heap_live_count() -> u32;
+        fn __wasm_sb_bindgen_externref_heap_live_count() -> f64;
 
-        fn __wasm_sb_bindgen_is_null(idx: u32) -> u32;
-        fn __wasm_sb_bindgen_is_undefined(idx: u32) -> u32;
-        fn __wasm_sb_bindgen_is_symbol(idx: u32) -> u32;
-        fn __wasm_sb_bindgen_is_object(idx: u32) -> u32;
-        fn __wasm_sb_bindgen_is_array(idx: u32) -> u32;
-        fn __wasm_sb_bindgen_is_function(idx: u32) -> u32;
-        fn __wasm_sb_bindgen_is_string(idx: u32) -> u32;
-        fn __wasm_sb_bindgen_is_bigint(idx: u32) -> u32;
-        fn __wasm_sb_bindgen_typeof(idx: u32) -> u32;
+        fn __wasm_sb_bindgen_is_null(idx: f64) -> f64;
+        fn __wasm_sb_bindgen_is_undefined(idx: f64) -> f64;
+        fn __wasm_sb_bindgen_is_symbol(idx: f64) -> f64;
+        fn __wasm_sb_bindgen_is_object(idx: f64) -> f64;
+        fn __wasm_sb_bindgen_is_array(idx: f64) -> f64;
+        fn __wasm_sb_bindgen_is_function(idx: f64) -> f64;
+        fn __wasm_sb_bindgen_is_string(idx: f64) -> f64;
+        fn __wasm_sb_bindgen_is_bigint(idx: f64) -> f64;
+        fn __wasm_sb_bindgen_typeof(idx: f64) -> f64;
 
-        fn __wasm_sb_bindgen_in(prop: u32, obj: u32) -> u32;
+        fn __wasm_sb_bindgen_in(prop: f64, obj: f64) -> f64;
 
-        fn __wasm_sb_bindgen_is_falsy(idx: u32) -> u32;
-        fn __wasm_sb_bindgen_as_number(idx: u32) -> f64;
-        fn __wasm_sb_bindgen_try_into_number(idx: u32) -> u32;
-        fn __wasm_sb_bindgen_neg(idx: u32) -> u32;
-        fn __wasm_sb_bindgen_bit_and(a: u32, b: u32) -> u32;
-        fn __wasm_sb_bindgen_bit_or(a: u32, b: u32) -> u32;
-        fn __wasm_sb_bindgen_bit_xor(a: u32, b: u32) -> u32;
-        fn __wasm_sb_bindgen_bit_not(idx: u32) -> u32;
-        fn __wasm_sb_bindgen_shl(a: u32, b: u32) -> u32;
-        fn __wasm_sb_bindgen_shr(a: u32, b: u32) -> u32;
-        fn __wasm_sb_bindgen_unsigned_shr(a: u32, b: u32) -> u32;
-        fn __wasm_sb_bindgen_add(a: u32, b: u32) -> u32;
-        fn __wasm_sb_bindgen_sub(a: u32, b: u32) -> u32;
-        fn __wasm_sb_bindgen_div(a: u32, b: u32) -> u32;
-        fn __wasm_sb_bindgen_checked_div(a: u32, b: u32) -> u32;
-        fn __wasm_sb_bindgen_mul(a: u32, b: u32) -> u32;
-        fn __wasm_sb_bindgen_rem(a: u32, b: u32) -> u32;
-        fn __wasm_sb_bindgen_pow(a: u32, b: u32) -> u32;
-        fn __wasm_sb_bindgen_lt(a: u32, b: u32) -> u32;
-        fn __wasm_sb_bindgen_le(a: u32, b: u32) -> u32;
-        fn __wasm_sb_bindgen_ge(a: u32, b: u32) -> u32;
-        fn __wasm_sb_bindgen_gt(a: u32, b: u32) -> u32;
+        fn __wasm_sb_bindgen_is_falsy(idx: f64) -> f64;
+        fn __wasm_sb_bindgen_as_number(idx: f64) -> f64;
+        fn __wasm_sb_bindgen_try_into_number(idx: f64) -> f64;
+        fn __wasm_sb_bindgen_neg(idx: f64) -> f64;
+        fn __wasm_sb_bindgen_bit_and(a: f64, b: f64) -> f64;
+        fn __wasm_sb_bindgen_bit_or(a: f64, b: f64) -> f64;
+        fn __wasm_sb_bindgen_bit_xor(a: f64, b: f64) -> f64;
+        fn __wasm_sb_bindgen_bit_not(idx: f64) -> f64;
+        fn __wasm_sb_bindgen_shl(a: f64, b: f64) -> f64;
+        fn __wasm_sb_bindgen_shr(a: f64, b: f64) -> f64;
+        fn __wasm_sb_bindgen_unsigned_shr(a: f64, b: f64) -> f64;
+        fn __wasm_sb_bindgen_add(a: f64, b: f64) -> f64;
+        fn __wasm_sb_bindgen_sub(a: f64, b: f64) -> f64;
+        fn __wasm_sb_bindgen_div(a: f64, b: f64) -> f64;
+        fn __wasm_sb_bindgen_checked_div(a: f64, b: f64) -> f64;
+        fn __wasm_sb_bindgen_mul(a: f64, b: f64) -> f64;
+        fn __wasm_sb_bindgen_rem(a: f64, b: f64) -> f64;
+        fn __wasm_sb_bindgen_pow(a: f64, b: f64) -> f64;
+        fn __wasm_sb_bindgen_lt(a: f64, b: f64) -> f64;
+        fn __wasm_sb_bindgen_le(a: f64, b: f64) -> f64;
+        fn __wasm_sb_bindgen_ge(a: f64, b: f64) -> f64;
+        fn __wasm_sb_bindgen_gt(a: f64, b: f64) -> f64;
 
-        fn __wasm_sb_bindgen_number_get(idx: u32) -> WasmRet<Option<f64>>;
-        fn __wasm_sb_bindgen_boolean_get(idx: u32) -> u32;
-        fn __wasm_sb_bindgen_string_get(idx: u32) -> WasmSlice;
-        fn __wasm_sb_bindgen_bigint_get_as_i64(idx: u32) -> WasmRet<Option<i64>>;
+        fn __wasm_sb_bindgen_number_get(idx: f64) -> WasmRet<Option<f64>>;
+        fn __wasm_sb_bindgen_boolean_get(idx: f64) -> f64;
+        fn __wasm_sb_bindgen_string_get(idx: f64) -> WasmSlice;
+        fn __wasm_sb_bindgen_bigint_get_as_i64(idx: f64) -> WasmRet<Option<Wasm8Bytes>>;
 
-        fn __wasm_sb_bindgen_debug_string(ret: *mut [usize; 2], idx: u32) -> ();
+        fn __wasm_sb_bindgen_debug_string(ret: *mut [usize; 2], idx: f64) -> ();
 
         fn __wasm_sb_bindgen_throw(a: *const u8, b: usize) -> !;
-        fn __wasm_sb_bindgen_rethrow(a: u32) -> !;
-        fn __wasm_sb_bindgen_error_new(a: *const u8, b: usize) -> u32;
+        fn __wasm_sb_bindgen_rethrow(a: f64) -> !;
+        fn __wasm_sb_bindgen_error_new(a: *const u8, b: usize) -> f64;
 
-        fn __wasm_sb_bindgen_cb_drop(idx: u32) -> u32;
+        fn __wasm_sb_bindgen_cb_drop(idx: f64) -> f64;
 
-        fn __wasm_sb_bindgen_describe(v: u32) -> ();
-        fn __wasm_sb_bindgen_describe_closure(a: u32, b: u32, c: u32) -> u32;
+        fn __wasm_sb_bindgen_describe(v: f64) -> ();
+        fn __wasm_sb_bindgen_describe_closure(a: f64, b: f64, c: f64) -> f64;
 
-        fn __wasm_sb_bindgen_json_parse(ptr: *const u8, len: usize) -> u32;
-        fn __wasm_sb_bindgen_json_serialize(idx: u32) -> WasmSlice;
-        fn __wasm_sb_bindgen_sbval_eq(a: u32, b: u32) -> u32;
-        fn __wasm_sb_bindgen_sbval_loose_eq(a: u32, b: u32) -> u32;
+        fn __wasm_sb_bindgen_json_parse(ptr: *const u8, len: usize) -> f64;
+        fn __wasm_sb_bindgen_json_serialize(idx: f64) -> WasmSlice;
+        fn __wasm_sb_bindgen_sbval_eq(a: f64, b: f64) -> f64;
+        fn __wasm_sb_bindgen_sbval_loose_eq(a: f64, b: f64) -> f64;
 
-        fn __wasm_sb_bindgen_copy_to_typed_array(ptr: *const u8, len: usize, idx: u32) -> ();
+        fn __wasm_sb_bindgen_copy_to_typed_array(ptr: *const u8, len: usize, idx: f64) -> ();
 
-        fn __wasm_sb_bindgen_not(idx: u32) -> u32;
+        fn __wasm_sb_bindgen_not(idx: f64) -> f64;
 
-        fn __wasm_sb_bindgen_exports() -> u32;
-        fn __wasm_sb_bindgen_memory() -> u32;
-        fn __wasm_sb_bindgen_module() -> u32;
-        fn __wasm_sb_bindgen_function_table() -> u32;
+        fn __wasm_sb_bindgen_exports() -> f64;
+        fn __wasm_sb_bindgen_memory() -> f64;
+        fn __wasm_sb_bindgen_module() -> f64;
+        fn __wasm_sb_bindgen_function_table() -> f64;
+
+        fn __wasm_sb_bindgen_i64_split(a: i64) -> Wasm8Bytes;
+        fn __wasm_sb_bindgen_i64_join(a: Wasm8Bytes) -> i64;
+        fn __wasm_sb_bindgen_u64_split(a: u64) -> Wasm8Bytes;
+        fn __wasm_sb_bindgen_u64_join(a: Wasm8Bytes) -> u64;
     }
 }
 
@@ -1148,12 +1159,12 @@ pub fn throw_val(s: SbValue) -> ! {
     }
 }
 
-pub fn externref_heap_live_count() -> u32 {
+pub fn externref_heap_live_count() -> f64 {
     unsafe { __wasm_sb_bindgen_externref_heap_live_count() }
 }
 
 #[doc(hidden)]
-pub fn anyref_heap_live_count() -> u32 {
+pub fn anyref_heap_live_count() -> f64 {
     externref_heap_live_count()
 }
 
@@ -1513,24 +1524,24 @@ pub mod __rt {
         crate::externref::link_intrinsics();
     }
 
-    static mut GLOBAL_EXNDATA: [u32; 2] = [0; 2];
+    static mut GLOBAL_EXNDATA: [f64; 2] = [0f64; 2];
 
     #[no_mangle]
-    pub unsafe extern "C" fn __wasm_sb_bindgen_exn_store(idx: u32) {
-        debug_assert_eq!(GLOBAL_EXNDATA[0], 0);
-        GLOBAL_EXNDATA[0] = 1;
+    pub unsafe extern "C" fn __wasm_sb_bindgen_exn_store(idx: f64) {
+        debug_assert_eq!(GLOBAL_EXNDATA[0], 0f64);
+        GLOBAL_EXNDATA[0] = 1f64;
         GLOBAL_EXNDATA[1] = idx;
     }
 
     pub fn take_last_exception() -> Result<(), super::SbValue> {
         unsafe {
-            let ret = if GLOBAL_EXNDATA[0] == 1 {
+            let ret = if GLOBAL_EXNDATA[0] == 1f64 {
                 Err(super::SbValue::_new(GLOBAL_EXNDATA[1]))
             } else {
                 Ok(())
             };
-            GLOBAL_EXNDATA[0] = 0;
-            GLOBAL_EXNDATA[1] = 0;
+            GLOBAL_EXNDATA[0] = 0f64;
+            GLOBAL_EXNDATA[1] = 0f64;
             ret
         }
     }

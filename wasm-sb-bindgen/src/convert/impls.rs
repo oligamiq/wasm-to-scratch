@@ -6,7 +6,6 @@ use super::{
     FromWasmAbi, IntoWasmAbi, LongRefFromWasmAbi, OptionFromWasmAbi, OptionIntoWasmAbi,
     RefFromWasmAbi, ReturnWasmAbi, TryFromSbValue, WasmAbi, WasmPrimitive,
 };
-
 // if_std! {
 //     use std::boxed::Box;
 //     use std::fmt::Debug;
@@ -33,30 +32,42 @@ impl<T: WasmPrimitive> WasmAbi for T {
 
 impl<T: WasmAbi<Prim4 = ()>> WasmAbi for Option<T> {
     /// Whether this `Option` is a `Some` value.
-    type Prim1 = u32;
-    type Prim2 = T::Prim1;
-    type Prim3 = T::Prim2;
-    type Prim4 = T::Prim3;
+    type Prim1 = f64;
+    type Prim2 = <T as WasmAbi>::Prim1;
+    type Prim3 = <T as WasmAbi>::Prim2;
+    type Prim4 = <T as WasmAbi>::Prim3;
 
     #[inline]
-    fn split(self) -> (u32, T::Prim1, T::Prim2, T::Prim3) {
+    fn split(
+        self,
+    ) -> (
+        f64,
+        <T as WasmAbi>::Prim1,
+        <T as WasmAbi>::Prim2,
+        <T as WasmAbi>::Prim3,
+    ) {
         match self {
             None => (
-                0,
+                0f64,
                 Default::default(),
                 Default::default(),
                 Default::default(),
             ),
             Some(value) => {
                 let (prim1, prim2, prim3, ()) = value.split();
-                (1, prim1, prim2, prim3)
+                (1f64, prim1, prim2, prim3)
             }
         }
     }
 
     #[inline]
-    fn join(is_some: u32, prim1: T::Prim1, prim2: T::Prim2, prim3: T::Prim3) -> Self {
-        if is_some == 0 {
+    fn join(
+        is_some: f64,
+        prim1: <T as WasmAbi>::Prim1,
+        prim2: <T as WasmAbi>::Prim2,
+        prim3: <T as WasmAbi>::Prim3,
+    ) -> Self {
+        if is_some == 0f64 {
             None
         } else {
             Some(T::join(prim1, prim2, prim3, ()))
@@ -100,152 +111,143 @@ macro_rules! type_wasm_native {
     )*)
 }
 
-type_wasm_native!(
-    i32 as i32
-    isize as i32
-    u32 as u32
-    usize as u32
-    i64 as i64
-    u64 as u64
-    f32 as f32
-    f64 as f64
-);
+type_wasm_native!(f64 as f64);
 
-macro_rules! type_abi_as_u32 {
+macro_rules! type_abi_as_f64 {
     ($($t:tt)*) => ($(
         impl IntoWasmAbi for $t {
-            type Abi = u32;
+            type Abi = f64;
 
             #[inline]
-            fn into_abi(self) -> u32 { self as u32 }
+            fn into_abi(self) -> f64 { self as f64 }
         }
 
         impl FromWasmAbi for $t {
-            type Abi = u32;
+            type Abi = f64;
 
             #[inline]
-            unsafe fn from_abi(sb: u32) -> Self { sb as $t }
+            unsafe fn from_abi(sb: f64) -> Self { sb as $t }
         }
 
         impl OptionIntoWasmAbi for $t {
             #[inline]
-            fn none() -> u32 { 0x00FF_FFFFu32 }
+            fn none() -> f64 { std::f64::MAX }
         }
 
         impl OptionFromWasmAbi for $t {
             #[inline]
-            fn is_none(sb: &u32) -> bool { *sb == 0x00FF_FFFFu32 }
+            fn is_none(sb: &f64) -> bool { *sb == std::f64::MAX }
         }
     )*)
 }
 
-type_abi_as_u32!(i8 u8 i16 u16);
+type_abi_as_f64!(i8 u8 i16 u16 i32 isize u32 usize f32);
 
 impl IntoWasmAbi for bool {
-    type Abi = u32;
+    type Abi = f64;
 
     #[inline]
-    fn into_abi(self) -> u32 {
-        self as u32
+    fn into_abi(self) -> f64 {
+        self as u32 as f64
     }
 }
 
 impl FromWasmAbi for bool {
-    type Abi = u32;
+    type Abi = f64;
 
     #[inline]
-    unsafe fn from_abi(sb: u32) -> bool {
-        sb != 0
+    unsafe fn from_abi(sb: f64) -> bool {
+        sb != 0f64
     }
 }
 
 impl OptionIntoWasmAbi for bool {
     #[inline]
-    fn none() -> u32 {
-        0x00FF_FFFFu32
+    fn none() -> f64 {
+        std::f64::MAX
     }
 }
 
 impl OptionFromWasmAbi for bool {
     #[inline]
-    fn is_none(sb: &u32) -> bool {
-        *sb == 0x00FF_FFFFu32
+    fn is_none(sb: &f64) -> bool {
+        *sb == std::f64::MAX
     }
 }
 
 impl IntoWasmAbi for char {
-    type Abi = u32;
+    type Abi = f64;
 
     #[inline]
-    fn into_abi(self) -> u32 {
-        self as u32
+    fn into_abi(self) -> f64 {
+        self as u32 as f64
     }
 }
 
 impl FromWasmAbi for char {
-    type Abi = u32;
+    type Abi = f64;
 
     #[inline]
-    unsafe fn from_abi(sb: u32) -> char {
-        char::from_u32_unchecked(sb)
+    unsafe fn from_abi(sb: f64) -> char {
+        char::from_u32_unchecked(sb as u32)
     }
 }
 
 impl OptionIntoWasmAbi for char {
     #[inline]
-    fn none() -> u32 {
-        0x00FF_FFFFu32
+    fn none() -> f64 {
+        std::f64::MAX
     }
 }
 
 impl OptionFromWasmAbi for char {
     #[inline]
-    fn is_none(sb: &u32) -> bool {
-        *sb == 0x00FF_FFFFu32
+    fn is_none(sb: &f64) -> bool {
+        *sb == std::f64::MAX
     }
 }
 
 impl<T> IntoWasmAbi for *const T {
-    type Abi = u32;
+    type Abi = f64;
 
     #[inline]
-    fn into_abi(self) -> u32 {
-        self as u32
+    fn into_abi(self) -> f64 {
+        self as u32 as f64
     }
 }
 
 impl<T> FromWasmAbi for *const T {
-    type Abi = u32;
+    type Abi = f64;
 
     #[inline]
-    unsafe fn from_abi(sb: u32) -> *const T {
-        sb as *const T
+    unsafe fn from_abi(sb: f64) -> *const T {
+        sb as u32 as *const T
     }
 }
 
 impl<T> IntoWasmAbi for *mut T {
-    type Abi = u32;
+    type Abi = f64;
 
     #[inline]
-    fn into_abi(self) -> u32 {
-        self as u32
+    fn into_abi(self) -> f64 {
+        self as u32 as f64
     }
 }
 
 impl<T> FromWasmAbi for *mut T {
-    type Abi = u32;
+    type Abi = f64;
 
     #[inline]
-    unsafe fn from_abi(sb: u32) -> *mut T {
-        sb as *mut T
+    unsafe fn from_abi(sb: f64) -> *mut T {
+        sb as u32 as *mut T
     }
 }
 
 impl IntoWasmAbi for SbValue {
-    type Abi = u32;
+    type Abi = f64;
 
     #[inline]
-    fn into_abi(self) -> u32 {
+    fn into_abi(self) -> f64 {
         let ret = self.idx;
         mem::forget(self);
         ret
@@ -253,39 +255,39 @@ impl IntoWasmAbi for SbValue {
 }
 
 impl FromWasmAbi for SbValue {
-    type Abi = u32;
+    type Abi = f64;
 
     #[inline]
-    unsafe fn from_abi(sb: u32) -> SbValue {
+    unsafe fn from_abi(sb: f64) -> SbValue {
         SbValue::_new(sb)
     }
 }
 
 impl<'a> IntoWasmAbi for &'a SbValue {
-    type Abi = u32;
+    type Abi = f64;
 
     #[inline]
-    fn into_abi(self) -> u32 {
+    fn into_abi(self) -> f64 {
         self.idx
     }
 }
 
 impl RefFromWasmAbi for SbValue {
-    type Abi = u32;
+    type Abi = f64;
     type Anchor = ManuallyDrop<SbValue>;
 
     #[inline]
-    unsafe fn ref_from_abi(sb: u32) -> Self::Anchor {
+    unsafe fn ref_from_abi(sb: f64) -> Self::Anchor {
         ManuallyDrop::new(SbValue::_new(sb))
     }
 }
 
 impl LongRefFromWasmAbi for SbValue {
-    type Abi = u32;
+    type Abi = f64;
     type Anchor = SbValue;
 
     #[inline]
-    unsafe fn long_ref_from_abi(sb: u32) -> Self::Anchor {
+    unsafe fn long_ref_from_abi(sb: f64) -> Self::Anchor {
         Self::from_abi(sb)
     }
 }
@@ -324,31 +326,31 @@ impl IntoWasmAbi for () {
     }
 }
 
-impl<T: WasmAbi<Prim3 = (), Prim4 = ()>> WasmAbi for Result<T, u32> {
+impl<T: WasmAbi<Prim3 = (), Prim4 = ()>> WasmAbi for Result<T, f64> {
     type Prim1 = T::Prim1;
     type Prim2 = T::Prim2;
     // The order of primitives here is such that we can pop() the possible error
     // first, deal with it and move on. Later primitives are popped off the
     // stack first.
     /// If this `Result` is an `Err`, the error value.
-    type Prim3 = u32;
+    type Prim3 = f64;
     /// Whether this `Result` is an `Err`.
-    type Prim4 = u32;
+    type Prim4 = f64;
 
     #[inline]
-    fn split(self) -> (T::Prim1, T::Prim2, u32, u32) {
+    fn split(self) -> (T::Prim1, T::Prim2, f64, f64) {
         match self {
             Ok(value) => {
                 let (prim1, prim2, (), ()) = value.split();
-                (prim1, prim2, 0, 0)
+                (prim1, prim2, 0f64, 0f64)
             }
-            Err(err) => (Default::default(), Default::default(), err, 1),
+            Err(err) => (Default::default(), Default::default(), err, 1f64),
         }
     }
 
     #[inline]
-    fn join(prim1: T::Prim1, prim2: T::Prim2, err: u32, is_err: u32) -> Self {
-        if is_err == 0 {
+    fn join(prim1: T::Prim1, prim2: T::Prim2, err: f64, is_err: f64) -> Self {
+        if is_err == 0f64 {
             Ok(T::join(prim1, prim2, (), ()))
         } else {
             Err(err)
@@ -362,7 +364,7 @@ where
     E: Into<SbValue>,
     T::Abi: WasmAbi<Prim3 = (), Prim4 = ()>,
 {
-    type Abi = Result<T::Abi, u32>;
+    type Abi = Result<T::Abi, f64>;
 
     #[inline]
     fn return_abi(self) -> Self::Abi {
