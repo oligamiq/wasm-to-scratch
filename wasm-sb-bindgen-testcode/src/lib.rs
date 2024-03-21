@@ -1,7 +1,7 @@
 extern crate wee_alloc;
 
-use wasm_sb_bindgen::{convert::{FromWasmAbi, WasmAbi}, wasm_sb_bindgen};
-use std::fmt::Debug;
+use wasm_sb_bindgen::{closure::Closure, wasm_sb_bindgen, SbValue, __wasm_sb_bindgen_debug_num};
+
 
 // #[wasm_sb_bindgen]
 // pub fn greet() -> String {
@@ -15,6 +15,45 @@ pub fn nya(t: String) -> String {
     ("nya(=^・・^=) {}".to_string() + &t).clone()
 }
 
+// https://stackoverflow.com/questions/53214434/how-to-return-a-rust-closure-to-javascript-via-webassembly
+// #[wasm_sb_bindgen]
+// pub fn nya_sama() -> SbValue {
+//     // let _ = unsafe { alert(7) };
+
+//     unsafe { __wasm_sb_bindgen_debug_num(-6) };
+
+//     let box_fn = Box::new(move |u| {
+//         nya(format!("ddd: {u}"))
+//     });
+
+//     unsafe { __wasm_sb_bindgen_debug_num(-5) };
+
+//     let as_fn = box_fn as Box<dyn FnMut(String) -> String>;
+
+//     unsafe { __wasm_sb_bindgen_debug_num(-4) };
+
+//     let cb = Closure::wrap(as_fn);
+
+//     unsafe { __wasm_sb_bindgen_debug_num(-3) };
+
+//     // Extract the `JsValue` from this `Closure`, the handle
+//     // on a JS function representing the closure
+//     let ret = cb.as_ref().clone();
+
+//     // Once `cb` is dropped it'll "neuter" the closure and
+//     // cause invocations to throw a JS exception. Memory
+//     // management here will come later, so just leak it
+//     // for now.
+//     cb.forget();
+
+//     ret
+// }
+
+#[wasm_sb_bindgen]
+pub fn nya_sama() -> String {
+    "nya_sama".into()
+}
+
 #[wasm_sb_bindgen]
 pub fn nya_2(t: String) -> String {
     // <wasm_bindgen::convert::ReturnWasmAbi>::return_abi(Ok(1));
@@ -23,12 +62,12 @@ pub fn nya_2(t: String) -> String {
 }
 
 #[wasm_sb_bindgen]
-pub fn nya_3(t: String) -> u64 {
+pub fn nya_3(_t: String) -> u64 {
     2
 }
 
 #[wasm_sb_bindgen]
-pub fn nya_4(t: String) {
+pub fn nya_4(_t: String) {
 }
 
 #[wasm_sb_bindgen]
@@ -71,5 +110,15 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 //         };
 //         let t = <String as wasm_sb_bindgen::convert::ReturnWasmAbi>::return_abi(_ret).into();
 //         t
+//     }
+// };
+// #[automatically_derived]
+// const _: () = {
+//     #[no_mangle]
+//     #[doc(hidden)]
+//     pub extern "C" fn __wasm_sb_bindgen_describe_kow() {
+//         use wasm_sb_bindgen::describe::*;
+//         wasm_sb_bindgen::__rt::link_mem_intrinsics();
+//         <dyn Fn(char) -> String>::describe();
 //     }
 // };

@@ -7,13 +7,14 @@ use self::interpreter_descriptor::interpreter_descriptor;
 pub mod decode;
 pub mod descriptor;
 pub mod interpreter_descriptor;
+pub mod sb;
 
-pub fn get_ty(module: &mut Module) {
+pub fn get_ty(module: &mut Module) -> Vec<(String, Descriptor)> {
+    let prefix = "__wasm_sb_bindgen_describe_";
     let exports = module
         .exports
         .iter()
         .flat_map(|export| {
-            let prefix = "__wasm_sb_bindgen_describe_";
             if !export.name.0.starts_with(prefix) {
                 return None;
             }
@@ -29,8 +30,12 @@ pub fn get_ty(module: &mut Module) {
     let d = interpreter_descriptor(module, exports);
     let tys = d.iter().map(|(name, d)| {
         let descriptor = Descriptor::decode(d);
-        (name.clone(), descriptor)
+        (name[prefix.len()..].to_string(), descriptor)
     }).collect::<Vec<_>>();
 
-    println!("tys: {:?}", tys);
+    for (name, ty) in &tys {
+        println!("{}: {:?}", name, ty);
+    }
+
+    tys
 }

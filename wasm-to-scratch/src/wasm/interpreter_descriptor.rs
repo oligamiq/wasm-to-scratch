@@ -5,6 +5,8 @@ use sb_itchy::stack;
 use wain_ast::ValType;
 use wain_exec::{ImportInvalidError, ImportInvokeError, Importer, Memory, Runtime, Stack};
 
+use crate::wasm::sb::inject_stack_pointer_shim;
+
 #[derive(Clone)]
 struct CounterImporter {
     count: Arc<RwLock<Vec<u32>>>,
@@ -22,9 +24,26 @@ impl Importer for CounterImporter {
         // println!("call name: {}", name);
         if *name == String::from("__wasm_sb_bindgen_describe") {
             let mut count = self.count.write();
-            count.push(stack.pop::<i32>() as u32);
+            count.push(stack.pop::<f64>() as u32);
+            Ok(())
+        } else if *name == String::from("__wasm_sb_bindgen_debug_num") {
+            println!("debug {}", stack.pop::<i32>());
+            Ok(())
+        } else if *name == String::from("__wasm_sb_bindgen_describe_closure") {
+            // fn __wasm_sb_bindgen_describe_closure(a: f64, b: f64, c: f64) -> f64;
+            println!("__wasm_sb_bindgen_describe_closure:  {}", stack.pop::<f64>());
+            println!("__wasm_sb_bindgen_describe_closure:  {}", stack.pop::<f64>());
+            println!("__wasm_sb_bindgen_describe_closure:  {}", stack.pop::<f64>());
+            stack.push(3.0);
+            Ok(())
+        } else if *name == String::from("__wasm_sb_bindgen_object_clone_ref") {
+            // fn __wasm_sb_bindgen_object_clone_ref(idx: f64) -> f64;
+            let idx = stack.pop::<f64>();
+            println!("__wasm_sb_bindgen_object_clone_ref: idx: {}", idx);
+            stack.push(idx);
             Ok(())
         } else {
+            eprintln!("unknown function: {}", name);
             unreachable!()
         }
     }
@@ -47,8 +66,10 @@ impl CounterImporter {
 }
 
 // https://github.com/rhysd/wain/tree/master/wain-exec
-pub fn interpreter_descriptor(module: &wain_ast::Module, fn_names: Vec<String>) -> Vec<(String, Vec<u32>)> {
+pub fn interpreter_descriptor(mut module: &mut wain_ast::Module, fn_names: Vec<String>) -> Vec<(String, Vec<u32>)> {
     let mut importer = CounterImporter::new();
+
+    // println!("interpreter_descriptor");
 
     // Make abstract machine runtime. It instantiates a module instance
     let mut runtime = match Runtime::instantiate(&module, importer.clone()) {
@@ -59,9 +80,13 @@ pub fn interpreter_descriptor(module: &wain_ast::Module, fn_names: Vec<String>) 
         }
     };
 
+    // println!("interpreter_descriptor 2");
+
     let d = fn_names
         .iter()
         .map(|fn_name| {
+            // println!("interpreter_descriptor fn_name: {}", fn_name);
+
             importer.reset();
 
             // non return
@@ -80,5 +105,24 @@ pub fn interpreter_descriptor(module: &wain_ast::Module, fn_names: Vec<String>) 
             (fn_name.clone(), importer.get_count())
         })
         .collect::<Vec<_>>();
+
+    inject_stack_pointer_shim(module);
+
+    match runtime.invoke("nya_sama", &[]) {
+        Ok(ret) => {
+            // `ret` is type of `Option<Value>` where it contains `Some` value when the invoked
+            // function returned a value. Otherwise it's `None` value.
+            match ret {
+                Some(c) => {
+                    println!("nya_sama: {}", c);
+                }
+                None => unreachable!(),
+            }
+        }
+        Err(trap) => eprintln!("Execution was trapped: {}", trap),
+    };
+
+    println!("memory: {:?}", runtime.memory().data()[..100].to_vec());
+
     d
 }

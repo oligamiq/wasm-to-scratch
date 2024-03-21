@@ -3,6 +3,7 @@
 extern crate alloc;
 extern crate wee_alloc;
 
+use alloc::boxed::Box;
 use alloc::format;
 use alloc::string::String;
 use wasm_bindgen::prelude::*;
@@ -38,6 +39,26 @@ pub fn nya(t: String) -> String {
     // <wasm_bindgen::convert::ReturnWasmAbi>::return_abi(Ok(1));
     format!("nya(=^・・^=) {}", t)
 }
+
+#[wasm_bindgen]
+pub fn nya_sama(t: String) -> JsValue {
+    let cb = Closure::wrap(Box::new(move |u| {
+        nya(format!("{t}: {u}"))
+    }) as Box<dyn FnMut(String) -> String>);
+
+    // Extract the `JsValue` from this `Closure`, the handle
+    // on a JS function representing the closure
+    let ret = cb.as_ref().clone();
+
+    // Once `cb` is dropped it'll "neuter" the closure and
+    // cause invocations to throw a JS exception. Memory
+    // management here will come later, so just leak it
+    // for now.
+    cb.forget();
+
+    ret
+}
+
 // #[doc(hidden)]
 // pub extern "C" fn __wbindgen_describe_non() {
 //     use wasm_bindgen::describe::*;

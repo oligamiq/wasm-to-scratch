@@ -14,7 +14,7 @@ syn = { version = "2.0", features = ["full", "extra-traits"] }
 quote = "1.0"
 anyhow = "1.0"
 proc-macro-error = "1.0"
-cfg-if = "1.0"
+# cfg-if = "1.0"
 wasm-sb-bindgen-macro = { path = "../wasm-sb-bindgen-macro" }
 
 # https://astexplorer.net/

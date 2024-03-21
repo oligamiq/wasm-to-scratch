@@ -9,7 +9,7 @@ use crate::{
         WasmRet,
     },
     describe::{inform, CLOSURE, EXTERNREF},
-    throw_str, SbValue, UnwrapThrowExt as _, WasmDescribe,
+    throw_str, SbValue, UnwrapThrowExt as _, WasmDescribe, __wasm_sb_bindgen_debug_num,
 };
 
 pub struct Closure<T: ?Sized> {
@@ -19,7 +19,7 @@ pub struct Closure<T: ?Sized> {
 
 union FatPtr<T: ?Sized> {
     ptr: *mut T,
-    fields: (f64, f64),
+    fields: (u32, u32),
 }
 
 impl<T> Closure<T>
@@ -49,16 +49,28 @@ where
         Closure::wrap(Box::new(t).unsize())
     }
 
+
     /// A more direct version of `Closure::new` which creates a `Closure` from
     /// a `Box<dyn Fn>`/`Box<dyn FnMut>`, which is how it's kept internally.
     pub fn wrap(mut data: Box<T>) -> Closure<T> {
+        unsafe { __wasm_sb_bindgen_debug_num(100) };
+
+        unsafe { __wasm_sb_bindgen_debug_num(mem::size_of::<*const T>() as i32) };
+
+        unsafe { __wasm_sb_bindgen_debug_num(mem::size_of::<FatPtr<T>>() as i32) };
+
         assert_eq!(mem::size_of::<*const T>(), mem::size_of::<FatPtr<T>>());
+
+        unsafe { __wasm_sb_bindgen_debug_num(101) };
+
         let (a, b) = unsafe {
             FatPtr {
                 ptr: &mut *data as *mut T,
             }
             .fields
         };
+
+        let (a, b) = ((a as f64), b as f64);
 
         // Here we need to create a `SbValue` with the data and `T::invoke()`
         // function pointer. To do that we... take a few unconventional turns.
@@ -104,10 +116,14 @@ where
         // See crates/cli-support/src/sb/closures.rs for a more information
         // about what's going on here.
 
+        unsafe { __wasm_sb_bindgen_debug_num(1) };
+
         extern "C" fn describe<T: WasmClosure + ?Sized>() {
             inform(CLOSURE);
             T::describe()
         }
+
+        unsafe { __wasm_sb_bindgen_debug_num(2) };
 
         #[inline(never)]
         unsafe fn breaks_if_inlined<T: WasmClosure + ?Sized>(a: f64, b: f64) -> f64 {
@@ -118,7 +134,11 @@ where
             )
         }
 
+        unsafe { __wasm_sb_bindgen_debug_num(3) };
+
         let idx = unsafe { breaks_if_inlined::<T>(a, b) };
+
+        unsafe { __wasm_sb_bindgen_debug_num(4) };
 
         Closure {
             sb: ManuallyDrop::new(SbValue::_new(idx)),
@@ -335,7 +355,7 @@ macro_rules! doit {
                     // example)
                     let ret = {
                         let f: *const dyn Fn($($var),*) -> R =
-                            FatPtr { fields: (a, b) }.ptr;
+                            FatPtr { fields: (a as u32, b as u32) }.ptr;
                         $(
                             let $var = <$var as FromWasmAbi>::from_abi($var::Abi::join($arg1, $arg2, $arg3, $arg4));
                         )*
@@ -359,7 +379,7 @@ macro_rules! doit {
                         return;
                     }
                     drop(Box::from_raw(FatPtr::<dyn Fn($($var,)*) -> R> {
-                        fields: (a, b)
+                        fields: (a as u32, b as u32)
                     }.ptr));
                 }
                 inform(destroy::<$($var,)* R> as u32 as f64);
@@ -392,7 +412,7 @@ macro_rules! doit {
                     // example)
                     let ret = {
                         let f: *const dyn FnMut($($var),*) -> R =
-                            FatPtr { fields: (a, b) }.ptr;
+                            FatPtr { fields: (a as u32, b as u32) }.ptr;
                         let f = f as *mut dyn FnMut($($var),*) -> R;
                         $(
                             let $var = <$var as FromWasmAbi>::from_abi($var::Abi::join($arg1, $arg2, $arg3, $arg4));
@@ -413,7 +433,7 @@ macro_rules! doit {
                         return;
                     }
                     drop(Box::from_raw(FatPtr::<dyn FnMut($($var,)*) -> R> {
-                        fields: (a, b)
+                        fields: (a as u32, b as u32)
                     }.ptr));
                 }
                 inform(destroy::<$($var,)* R> as u32 as f64);
@@ -603,7 +623,7 @@ where
             // convert `ret` as it may throw (for `Result`, for
             // example)
             let ret = {
-                let f: *const dyn Fn(&A) -> R = FatPtr { fields: (a, b) }.ptr;
+                let f: *const dyn Fn(&A) -> R = FatPtr { fields: (a as u32, b as u32) }.ptr;
                 let arg = <A as RefFromWasmAbi>::ref_from_abi(A::Abi::join(arg1, arg2, arg3, arg4));
                 (*f)(&*arg)
             };
@@ -618,7 +638,7 @@ where
                 return;
             }
             drop(Box::from_raw(
-                FatPtr::<dyn Fn(&A) -> R> { fields: (a, b) }.ptr,
+                FatPtr::<dyn Fn(&A) -> R> { fields: (a as u32, b as u32) }.ptr,
             ));
         }
         inform(destroy::<A, R> as u32 as f64);
@@ -649,7 +669,7 @@ where
             // convert `ret` as it may throw (for `Result`, for
             // example)
             let ret = {
-                let f: *const dyn FnMut(&A) -> R = FatPtr { fields: (a, b) }.ptr;
+                let f: *const dyn FnMut(&A) -> R = FatPtr { fields: (a as u32, b as u32) }.ptr;
                 let f = f as *mut dyn FnMut(&A) -> R;
                 let arg = <A as RefFromWasmAbi>::ref_from_abi(A::Abi::join(arg1, arg2, arg3, arg4));
                 (*f)(&*arg)
@@ -665,7 +685,7 @@ where
                 return;
             }
             drop(Box::from_raw(
-                FatPtr::<dyn FnMut(&A) -> R> { fields: (a, b) }.ptr,
+                FatPtr::<dyn FnMut(&A) -> R> { fields: (a as u32, b as u32) }.ptr,
             ));
         }
         inform(destroy::<A, R> as u32 as f64);

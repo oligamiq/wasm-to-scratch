@@ -1,18 +1,21 @@
+pub mod util;
+pub mod wasm;
+pub mod scratch;
 use sb_sbity::target::SpriteOrStage;
 use scratch::rewrite_dependency::rewrite_list;
 use scratch::test_data::test_project;
 
 use scratch::wasm_binary;
 use util::get_preview_rect_from_block;
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
 
 use crate::scratch::block::procedures_definition::generate_func_block;
 use crate::scratch::test_data::test_wasm_binary;
 
-pub mod scratch;
-pub mod util;
-pub mod wasm;
-
-fn main() {
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn start() {
     let mut project = test_project().unwrap();
     let mut sprite = None;
 

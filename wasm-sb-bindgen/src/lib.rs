@@ -974,6 +974,11 @@ impl From<isize> for SbValue {
     }
 }
 
+#[link(wasm_import_module = "__wasm_sb_bindgen_placeholder__")]
+extern "C" {
+    pub fn __wasm_sb_bindgen_debug_num(num: i32) -> ();
+}
+
 externs! {
     #[link(wasm_import_module = "__wasm_sb_bindgen_placeholder__")]
     extern "C" {

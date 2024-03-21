@@ -3,15 +3,6 @@ use std::io::Read;
 use anyhow::Result;
 
 use super::sb3::ProjectZip;
-pub fn test_wasm_binary() -> Result<Vec<u8>> {
-    let filepath = "./testcode/pkg/testcode_bg.wasm";
-    let wasm = std::fs::File::open(filepath)?;
-    let data = wasm.bytes().fold(Vec::new(), |mut m, data| {
-        m.extend(data);
-        m
-    });
-    Ok(data)
-}
 
 pub fn test_project() -> Result<ProjectZip> {
     // let project = Project {
@@ -26,7 +17,13 @@ pub fn test_project() -> Result<ProjectZip> {
     // };
     // let project_data_path = "scratch/default.sb3";
     let project_data_path = "scratch/wasmの元.sb3";
-    let project = ProjectZip::new(project_data_path.to_string())?;
+    let data = include_bytes!("../../../scratch/wasmの元.sb3");
+    let project = ProjectZip::new_from_data(project_data_path.to_string(), data.to_vec())?;
 
     Ok(project)
+}
+
+pub fn test_wasm_binary() -> Vec<u8> {
+    let bytes = include_bytes!("../../../target/wasm32-unknown-unknown/release/wasm_sb_bindgen_testcode.wasm");
+    bytes.to_vec()
 }
