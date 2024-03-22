@@ -4,6 +4,8 @@
     "argumentids",
     "argumentnames",
     "bindgen",
+    "Externref",
+    "Funcref",
     "funcs",
     "getrandom",
     "Insn",

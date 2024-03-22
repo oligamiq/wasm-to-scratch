@@ -12,7 +12,7 @@ use sb_sbity::{
     block::{Block, BlockInputValue},
     string_hashmap::StringHashMap,
 };
-use wain_ast::{Func, FuncType, ValType};
+use walrus::{Function, Type, ValType};
 
 use super::{
     custom_block_func::CustomBlockInputType, custom_block_stack_builder::CustomStackBuilder,
@@ -21,17 +21,17 @@ use super::{
 // https://developer.mozilla.org/ja/docs/WebAssembly/Understanding_the_text_format
 
 pub fn generate_func_block(
-    _function: &Func,
-    func_type: &FuncType,
+    _function: &Function,
+    func_type: &Type,
     left_x: i64,
     blocks_y: &mut i64,
     (i, len): (&mut usize, usize),
 ) -> StringHashMap<Block> {
     let pre_name = "__wasm_internal_func_";
-    let params_len = func_type.params.len();
+    let params_len = func_type.params().len();
     let name = format!("{}{}", pre_name, wrap_by_len(*i, len));
     let mut func_type = func_type
-        .params
+        .params()
         .iter()
         .enumerate()
         .flat_map(|(k, f)| {
@@ -53,6 +53,9 @@ pub fn generate_func_block(
                     "{}_f64",
                     wrap_by_len(k, params_len)
                 )),
+                ValType::Externref => unimplemented!("Externref"),
+                ValType::Funcref => unimplemented!("FuncRef"),
+                ValType::V128 => unimplemented!("V128"),
             });
             types
         })

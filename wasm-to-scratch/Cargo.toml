@@ -48,6 +48,9 @@ version = "0.0"
 default-features = false
 features = ["full-wasm"]
 
+[dependencies.id-arena]
+version = "2.2"
+
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies.wasm-opt]
 version = "0.116"
 # default-features = false

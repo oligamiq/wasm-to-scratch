@@ -1,5 +1,5 @@
 use sb_sbity::{block::Block, string_hashmap::StringHashMap};
-use wain_ast::{Func, FuncType};
+use walrus::{Function, ModuleTypes, Type};
 
 pub fn wrap_by_len(i: usize, len: usize) -> String {
     let len = format!("{:x}", len).len();
@@ -10,9 +10,9 @@ pub fn wrap_by_len(i: usize, len: usize) -> String {
     name
 }
 
-pub fn get_type_from_func<'a>(func: &'a Func, types: &'a Vec<FuncType>) -> &'a FuncType {
-    let index = func.idx;
-    &types[index as usize]
+pub fn get_type_from_func<'a>(func: &'a Function, types: &'a ModuleTypes) -> &'a Type {
+    let index = func.ty();
+    types.get(index)
 }
 
 pub fn get_preview_rect_from_block<'a>(func: &StringHashMap<Block>) -> (i64, i64, i64, i64) {

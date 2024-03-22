@@ -1,11 +1,8 @@
 use std::{process::exit, sync::Arc};
 
 use parking_lot::RwLock;
-use sb_itchy::stack;
-use wain_ast::ValType;
+use wain_ast::{Module, ValType};
 use wain_exec::{ImportInvalidError, ImportInvokeError, Importer, Memory, Runtime, Stack};
-
-use crate::wasm::sb::inject_stack_pointer_shim;
 
 #[derive(Clone)]
 struct CounterImporter {
@@ -15,7 +12,7 @@ struct CounterImporter {
 impl Importer for CounterImporter {
     const MODULE_NAME: &'static str = "__wasm_sb_bindgen_placeholder__";
 
-    fn validate(&self, name: &str, _: &[ValType], _: Option<ValType>) -> Option<ImportInvalidError> {
+    fn validate(&self, _name: &str, _: &[ValType], _: Option<ValType>) -> Option<ImportInvalidError> {
         // println!("validate name: {}", name);
         None
     }
@@ -66,7 +63,8 @@ impl CounterImporter {
 }
 
 // https://github.com/rhysd/wain/tree/master/wain-exec
-pub fn interpreter_descriptor(mut module: &mut wain_ast::Module, fn_names: Vec<String>) -> Vec<(String, Vec<u32>)> {
+pub fn interpreter_descriptor(module: &Module, fn_names: Vec<String>) -> Vec<(String, Vec<u32>)> {
+
     let mut importer = CounterImporter::new();
 
     // println!("interpreter_descriptor");
@@ -105,24 +103,5 @@ pub fn interpreter_descriptor(mut module: &mut wain_ast::Module, fn_names: Vec<S
             (fn_name.clone(), importer.get_count())
         })
         .collect::<Vec<_>>();
-
-    inject_stack_pointer_shim(module);
-
-    match runtime.invoke("nya_sama", &[]) {
-        Ok(ret) => {
-            // `ret` is type of `Option<Value>` where it contains `Some` value when the invoked
-            // function returned a value. Otherwise it's `None` value.
-            match ret {
-                Some(c) => {
-                    println!("nya_sama: {}", c);
-                }
-                None => unreachable!(),
-            }
-        }
-        Err(trap) => eprintln!("Execution was trapped: {}", trap),
-    };
-
-    println!("memory: {:?}", runtime.memory().data()[..100].to_vec());
-
     d
 }
