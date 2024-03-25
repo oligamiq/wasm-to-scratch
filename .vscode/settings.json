@@ -14,8 +14,5 @@
     "proccode",
     "sbity",
     "wasmparser"
-],
-  "rust-analyzer.linkedProjects": [
-    ".\\wasm-to-scratch\\Cargo.toml"
-  ]
+]
 }

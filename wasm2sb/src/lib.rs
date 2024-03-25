@@ -1,21 +1,26 @@
-pub mod util;
-pub mod wasm;
-pub mod scratch;
 use sb_sbity::target::SpriteOrStage;
 use scratch::rewrite_dependency::rewrite_list;
 use scratch::test_data::test_project;
 
+use anyhow::Result;
 use scratch::wasm_binary;
 use util::get_preview_rect_from_block;
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
 
 use crate::scratch::block::procedures_definition::generate_func_block;
 use crate::scratch::test_data::test_wasm_binary;
+use crate::util::get_type_from_func;
+
+pub mod scratch;
+pub mod util;
+pub mod wasm;
 
 #[cfg(target_arch = "wasm32")]
-#[wasm_bindgen]
+#[wasm_bindgen::prelude::wasm_bindgen]
 pub fn start() {
+    _main().unwrap();
+}
+
+pub fn _main() -> Result<()> {
     let mut project = test_project().unwrap();
     let mut sprite = None;
 
@@ -38,44 +43,43 @@ pub fn start() {
 
         // let data = test_wasm_binary().unwrap();
         let data = test_wasm_binary();
-        let wain = match wain_syntax_binary::parse(&data) {
-            Ok(wasm) => wasm,
-            Err(_) => {
-                println!("error");
-                return;
-            }
-        };
 
-        let mut module = wain.module;
+        let ty = wasm::get_ty(&data)?;
 
-        let ty = wasm::get_ty(&mut module);
+        println!("ty: {:?}", ty);
 
-        let functions_count = module.funcs.len() * 2;
+        let mut module = walrus::Module::from_buffer(&data).unwrap();
+
+        let functions_count = module.functions().count() * 2;
 
         let function_types = &module.types;
 
         let mut blocks_y = top_y;
         let mut i = 0;
-        for (func_index, function) in module.funcs.iter().enumerate() {
+        for function in module.funcs.iter() {
             // len文字の長さで0埋め
             let _name = util::wrap_by_len(i, functions_count);
 
             // println!("{:?}", function.idx);
             // println!("{:?}", function.start);
 
-            let func_type = util::get_type_from_func(function, function_types);
+            let func_type = get_type_from_func(&function, function_types);
+            // println!("function: {:?}", function);
+            // println!("func_type: {:?}", func_type);
+
             match &function.kind {
-                wain_ast::FuncKind::Import(import) => {
-                    println!("import {func_index}");
+                walrus::FunctionKind::Import(import) => {
+                    println!("import {:?}", function.id());
                     println!("{:?}", import);
                 }
-                wain_ast::FuncKind::Body { locals, expr: _ } => {
-                    println!("local {func_index}");
-                    println!("{:?}", locals);
+                walrus::FunctionKind::Local(locals) => {
+                    println!("local {:?}", function.id());
+                    // println!("{:?}", locals);
                     println!("{:?}", func_type);
                     println!("");
                 }
-            }
+                walrus::FunctionKind::Uninitialized(_) => todo!(),
+            };
 
             let block = generate_func_block(
                 function,
@@ -103,6 +107,8 @@ pub fn start() {
     //     break;
     // }
 
-    // #[cfg(not(target_arch = "wasm32"))]
-    // project.zip("scratch/out.sb3").unwrap();
+    #[cfg(not(target_arch = "wasm32"))]
+    project.zip_file("scratch/out.sb3")?;
+
+    Ok(())
 }

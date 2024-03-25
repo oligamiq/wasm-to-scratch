@@ -1,5 +1,5 @@
 [package]
-name = "wasm-to-scratch"
+name = "wasm2sb"
 version.workspace = true
 edition.workspace = true
 description = "Converts WebAssembly to Scratch 3.0 projects"
@@ -19,6 +19,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 parking_lot = "0.12"
 walrus = "0.20"
+clap = { version = "4.5", features = ["derive"] }
 
 [dependencies.futures-lite]
 version = "2.3"
@@ -57,3 +58,7 @@ version = "0.116"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies.wasm-bindgen]
 version = "0.2"
+
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies.clap]
+version = "4.5"

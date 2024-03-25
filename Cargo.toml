@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
-members = [ "testcode", "testreactor", "wasm-to-scratch", "buddy_block", "depict_nums", "wasm-sb-bindgen", "wasm-sb-bindgen-testcode", "wasm-sb-bindgen-macro"]
-default-members = ["wasm-to-scratch"]
+members = [ "testcode", "testreactor", "wasm2sb", "buddy_block", "depict_nums", "wasm-sb-bindgen", "wasm-sb-bindgen-testcode", "wasm-sb-bindgen-macro"]
+default-members = ["wasm2sb"]
 
 [workspace.package]
 # license = "MIT/Apache-2.0"

@@ -1,10 +1,12 @@
+use clap::Parser as _;
+use config::CommandLineArgs;
 use sb_sbity::target::SpriteOrStage;
 use scratch::rewrite_dependency::rewrite_list;
 use scratch::test_data::test_project;
 
+use anyhow::Result;
 use scratch::wasm_binary;
 use util::get_preview_rect_from_block;
-use anyhow::Result;
 
 use crate::scratch::block::procedures_definition::generate_func_block;
 use crate::scratch::test_data::test_wasm_binary;
@@ -13,8 +15,11 @@ use crate::util::get_type_from_func;
 pub mod scratch;
 pub mod util;
 pub mod wasm;
+pub mod config;
 
 fn main() -> Result<()> {
+    let opt = CommandLineArgs::parse();
+
     let mut project = test_project().unwrap();
     let mut sprite = None;
 
@@ -40,6 +45,8 @@ fn main() -> Result<()> {
 
         let ty = wasm::get_ty(&data)?;
 
+        println!("ty: {:?}", ty);
+
         let mut module = walrus::Module::from_buffer(&data).unwrap();
 
         let functions_count = module.functions().count() * 2;
@@ -63,13 +70,13 @@ fn main() -> Result<()> {
                 walrus::FunctionKind::Import(import) => {
                     println!("import {:?}", function.id());
                     println!("{:?}", import);
-                },
+                }
                 walrus::FunctionKind::Local(locals) => {
                     println!("local {:?}", function.id());
                     // println!("{:?}", locals);
                     println!("{:?}", func_type);
                     println!("");
-                },
+                }
                 walrus::FunctionKind::Uninitialized(_) => todo!(),
             };
 
@@ -99,8 +106,8 @@ fn main() -> Result<()> {
     //     break;
     // }
 
-    // #[cfg(not(target_arch = "wasm32"))]
-    // project.zip("scratch/out.sb3").unwrap();
+    #[cfg(not(target_arch = "wasm32"))]
+    project.zip_file("scratch/out.sb3")?;
 
     Ok(())
 }

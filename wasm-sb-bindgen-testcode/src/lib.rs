@@ -1,6 +1,6 @@
 extern crate wee_alloc;
 
-use wasm_sb_bindgen::{closure::Closure, wasm_sb_bindgen, SbValue, __wasm_sb_bindgen_debug_num};
+use wasm_sb_bindgen::{closure::Closure, wasm_sb_bindgen, SbError, SbValue, __wasm_sb_bindgen_debug_num};
 
 
 // #[wasm_sb_bindgen]
@@ -55,10 +55,10 @@ pub fn nya_sama() -> String {
 }
 
 #[wasm_sb_bindgen]
-pub fn nya_2(t: String) -> String {
+pub fn nya_2(t: String) -> Result<Option<String>, SbError> {
     // <wasm_bindgen::convert::ReturnWasmAbi>::return_abi(Ok(1));
 
-    ("nya(=^・・^=) {}".to_string() + &t).clone()
+    Ok(Some(("nya(=^・・^=) {}".to_string() + &t).clone()))
 }
 
 #[wasm_sb_bindgen]

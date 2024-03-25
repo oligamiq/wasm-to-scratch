@@ -12,12 +12,22 @@ struct CounterImporter {
 impl Importer for CounterImporter {
     const MODULE_NAME: &'static str = "__wasm_sb_bindgen_placeholder__";
 
-    fn validate(&self, _name: &str, _: &[ValType], _: Option<ValType>) -> Option<ImportInvalidError> {
+    fn validate(
+        &self,
+        _name: &str,
+        _: &[ValType],
+        _: Option<ValType>,
+    ) -> Option<ImportInvalidError> {
         // println!("validate name: {}", name);
         None
     }
 
-    fn call(&mut self, name: &str, stack: &mut Stack, _: &mut Memory) -> Result<(), ImportInvokeError> {
+    fn call(
+        &mut self,
+        name: &str,
+        stack: &mut Stack,
+        _: &mut Memory,
+    ) -> Result<(), ImportInvokeError> {
         // println!("call name: {}", name);
         if *name == String::from("__wasm_sb_bindgen_describe") {
             let mut count = self.count.write();
@@ -28,9 +38,18 @@ impl Importer for CounterImporter {
             Ok(())
         } else if *name == String::from("__wasm_sb_bindgen_describe_closure") {
             // fn __wasm_sb_bindgen_describe_closure(a: f64, b: f64, c: f64) -> f64;
-            println!("__wasm_sb_bindgen_describe_closure:  {}", stack.pop::<f64>());
-            println!("__wasm_sb_bindgen_describe_closure:  {}", stack.pop::<f64>());
-            println!("__wasm_sb_bindgen_describe_closure:  {}", stack.pop::<f64>());
+            println!(
+                "__wasm_sb_bindgen_describe_closure:  {}",
+                stack.pop::<f64>()
+            );
+            println!(
+                "__wasm_sb_bindgen_describe_closure:  {}",
+                stack.pop::<f64>()
+            );
+            println!(
+                "__wasm_sb_bindgen_describe_closure:  {}",
+                stack.pop::<f64>()
+            );
             stack.push(3.0);
             Ok(())
         } else if *name == String::from("__wasm_sb_bindgen_object_clone_ref") {
@@ -64,7 +83,6 @@ impl CounterImporter {
 
 // https://github.com/rhysd/wain/tree/master/wain-exec
 pub fn interpreter_descriptor(module: &Module, fn_names: Vec<String>) -> Vec<(String, Vec<u32>)> {
-
     let mut importer = CounterImporter::new();
 
     // println!("interpreter_descriptor");
@@ -94,7 +112,7 @@ pub fn interpreter_descriptor(module: &Module, fn_names: Vec<String>) -> Vec<(St
                     // function returned a value. Otherwise it's `None` value.
                     match ret {
                         Some(_) => unreachable!(),
-                        None => {},
+                        None => {}
                     }
                 }
                 Err(trap) => eprintln!("Execution was trapped: {}", trap),
