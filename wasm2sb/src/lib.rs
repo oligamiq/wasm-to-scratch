@@ -7,6 +7,7 @@ use scratch::wasm_binary;
 use util::get_preview_rect_from_block;
 
 use crate::scratch::block::procedures_definition::generate_func_block;
+
 use crate::scratch::test_data::test_wasm_binary;
 use crate::util::get_type_from_func;
 

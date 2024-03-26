@@ -3,6 +3,7 @@ name = "wasm2sb"
 version.workspace = true
 edition.workspace = true
 description = "Converts WebAssembly to Scratch 3.0 projects"
+authors.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -59,6 +60,8 @@ version = "0.116"
 [target.'cfg(target_arch = "wasm32")'.dependencies.wasm-bindgen]
 version = "0.2"
 
-
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies.clap]
 version = "4.5"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies.cargo_metadata]
+version = "0.18"

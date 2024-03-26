@@ -12,13 +12,13 @@ use crate::scratch::block::procedures_definition::generate_func_block;
 use crate::scratch::test_data::test_wasm_binary;
 use crate::util::get_type_from_func;
 
+pub mod config;
 pub mod scratch;
 pub mod util;
 pub mod wasm;
-pub mod config;
 
 fn main() -> Result<()> {
-    let opt = CommandLineArgs::parse();
+    let (config, path) = CommandLineArgs::parse_and_check();
 
     let mut project = test_project().unwrap();
     let mut sprite = None;
@@ -40,8 +40,7 @@ fn main() -> Result<()> {
         let (left_x, _right_x, top_y, _bottom_y) = get_preview_rect_from_block(blocks);
         // println!("{:#?}", blocks);
 
-        // let data = test_wasm_binary().unwrap();
-        let data = test_wasm_binary();
+        let data = std::fs::read(&path)?;
 
         let ty = wasm::get_ty(&data)?;
 
