@@ -101,9 +101,9 @@ fn main() -> Result<()> {
         blocks.0.extend(utf8_block.0);
     }
     // for function in module.functions() {
-    //     println!("{:?}", function);
-    //     break;
-    // }
+        //     println!("{:?}", function);
+        //     break;
+        // }
 
     #[cfg(not(target_arch = "wasm32"))]
     project.zip_file("scratch/out.sb3")?;

@@ -122,7 +122,24 @@ impl ProjectZip {
     where
         P: AsRef<std::path::Path>,
     {
+
         use std::io::Write as _;
+
+
+        let out = out.as_ref();
+
+        if out.parent().is_some() {
+            if out.parent().unwrap().parent().is_some_and(|i| i.exists()){
+                return Err(anyhow::anyhow!("invalid path"));
+            }
+            if out.parent().is_some() && !out.parent().unwrap().exists() {
+                std::fs::create_dir_all(out.parent().unwrap())?;
+            }
+        }
+
+        if out.exists() {
+            std::fs::remove_file(&out)?;
+        }
 
         let zipped = self.zip()?;
 

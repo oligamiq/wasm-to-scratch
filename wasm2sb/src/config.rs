@@ -69,8 +69,13 @@ impl CommandLineArgs {
                 debug,
                 common_args,
             } => {
+                let package = match PathBuf::from(package).canonicalize() {
+                    Ok(path) => path,
+                    Err(e) => panic!("Failed to canonicalize path: {:?}", e),
+                };
+
                 let metadata = MetadataCommand::new()
-                    .manifest_path(PathBuf::from(package).join("Cargo.toml"))
+                    .manifest_path(package.join("Cargo.toml"))
                     .features(CargoOpt::AllFeatures)
                     .exec()
                     .unwrap();
@@ -84,7 +89,7 @@ impl CommandLineArgs {
                 if common_args.quiet {
                     let mut command = Command::new("cargo")
                         .args(options)
-                        .current_dir(PathBuf::from(package))
+                        .current_dir(&package)
                         .stdout(Stdio::piped())
                         .stderr(Stdio::piped())
                         .spawn()

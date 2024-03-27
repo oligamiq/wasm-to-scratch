@@ -4,6 +4,7 @@
     "argumentids",
     "argumentnames",
     "bindgen",
+    "canonicalize",
     "Externref",
     "Funcref",
     "funcs",
