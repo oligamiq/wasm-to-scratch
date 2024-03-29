@@ -3,6 +3,8 @@
 extern crate alloc;
 extern crate wee_alloc;
 
+use core::sync::atomic::{AtomicBool, Ordering};
+
 use alloc::boxed::Box;
 use alloc::format;
 use alloc::string::String;
@@ -23,6 +25,15 @@ use wasm_bindgen::prelude::*;
 pub fn greet() -> String {
     "Hello, world!".into()
 }
+
+static STR: AtomicBool = AtomicBool::new(false);
+
+#[wasm_bindgen]
+pub fn nya_sama_2() -> String {
+    STR.store(true, Ordering::SeqCst);
+    format!("nya_sama2: {}", STR.load(Ordering::SeqCst))
+}
+
 // #[doc(hidden)]
 // pub extern "C" fn __wbindgen_describe_greet() {
 //     use wasm_bindgen::describe::*;

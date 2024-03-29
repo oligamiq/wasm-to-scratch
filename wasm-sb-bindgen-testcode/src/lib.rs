@@ -55,9 +55,12 @@ pub fn nya(t: String) -> String {
 //     "nya_sama2".into()
 // }
 
+static STR: AtomicBool = AtomicBool::new(false);
+
 #[wasm_sb_bindgen]
 pub fn nya_sama() -> String {
-    format!("nya_sama2")
+    STR.store(true, std::sync::atomic::Ordering::SeqCst);
+    format!("nya_sama2: {}", STR.load(std::sync::atomic::Ordering::SeqCst))
 }
 
 #[wasm_sb_bindgen]
