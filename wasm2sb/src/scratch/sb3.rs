@@ -373,3 +373,14 @@ impl std::fmt::Debug for TargetContextWrapper {
             .finish()
     }
 }
+
+pub struct TargetContextWrapperGuard<'a> {
+    target_context: &'static mut TargetContextWrapper,
+    _marker: std::marker::PhantomData<&'a ()>,
+}
+
+// impl<'a> TargetContextWrapperGuard<'a> {
+//     pub fn deref(&self) -> &'static TargetContext<'static> {
+//         self.target_context.get_target_context()
+//     }
+// }

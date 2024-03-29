@@ -34,6 +34,9 @@ colored = "2.1"
 tempfile = "3.10.1"
 semver = "1.0.22"
 
+# scratch base system
+sb_buddy_block_base = { path = "../buddy_block"}
+
 [dependencies.futures-lite]
 version = "2.3"
 default-features = false

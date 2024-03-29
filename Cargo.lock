@@ -110,14 +110,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf4b9d6a944f767f8e5e0db018570623c85f3d925ac718db4e06d0187adb21c1"
 
 [[package]]
-name = "buddy_block"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "itertools",
-]
-
-[[package]]
 name = "bumpalo"
 version = "3.15.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -860,6 +852,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "sb_buddy_block_base"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "itertools",
+]
+
+[[package]]
 name = "scopeguard"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1369,6 +1369,7 @@ dependencies = [
  "path-slash",
  "sb-itchy",
  "sb-sbity",
+ "sb_buddy_block_base",
  "semver",
  "serde",
  "serde_json",
