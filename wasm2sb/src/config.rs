@@ -6,7 +6,9 @@ use std::{
 
 use cargo_metadata::{CargoOpt, Message, MetadataCommand};
 use clap::{Args, Parser, Subcommand};
-use serde::de;
+use miette::{NamedSource, Result};
+
+use crate::error::{FileNotFoundError, Wasm2SbError};
 
 /// Command line arguments
 #[derive(Parser, Debug)]
@@ -60,7 +62,7 @@ pub struct Arg {
 }
 
 impl CommandLineArgs {
-    pub fn parse_and_check() -> (Self, PathBuf) {
+    pub fn parse_and_check() -> Result<(Self, PathBuf)> {
         let opt = CommandLineArgs::parse();
 
         match &opt.command {
@@ -69,16 +71,25 @@ impl CommandLineArgs {
                 debug,
                 common_args,
             } => {
-                let package = match PathBuf::from(package).canonicalize() {
-                    Ok(path) => path,
-                    Err(e) => panic!("Failed to canonicalize path: {:?}", e),
-                };
+                // let package = match PathBuf::from(package).canonicalize() {
+                //     Ok(path) => path,
+                //     Err(e) => panic!("Failed to canonicalize path: {:?}", e),
+                // };
+                let package = PathBuf::from(package);
 
-                let metadata = MetadataCommand::new()
+                let metadata = match MetadataCommand::new()
                     .manifest_path(package.join("Cargo.toml"))
                     .features(CargoOpt::AllFeatures)
                     .exec()
-                    .unwrap();
+                {
+                    Ok(metadata) => metadata,
+                    Err(e) => {
+                        return Err(FileNotFoundError {
+                            src: package.join("Cargo.toml").into(),
+                        }
+                        .into());
+                    }
+                };
 
                 let mut options = vec!["build", "--message-format=json-render-diagnostics"];
                 if !debug {
@@ -122,7 +133,7 @@ impl CommandLineArgs {
                         .join("wasm32-unknown-unknown/release/wasm_sb_bindgen_testcode.wasm")
                 };
 
-                (opt, path.into())
+                Ok((opt, path.into()))
             }
             SubCommands::Wasm {
                 wasm,
@@ -130,9 +141,12 @@ impl CommandLineArgs {
             } => {
                 let wasm_path = PathBuf::from(&wasm);
                 if !wasm_path.exists() {
-                    panic!("Wasm file not found: {:?}", wasm_path);
+                    return Err(Wasm2SbError {
+                        src: NamedSource::new("main.rs", "source\n  text\n    here".into()),
+                        bad_bit: (0, 0).into(),
+                    }.into());
                 }
-                (opt, wasm_path)
+                Ok((opt, wasm_path))
             }
         }
     }

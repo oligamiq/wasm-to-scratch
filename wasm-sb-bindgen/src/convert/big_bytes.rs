@@ -1,4 +1,7 @@
-use crate::{__wasm_sb_bindgen_i64_join, __wasm_sb_bindgen_i64_split, __wasm_sb_bindgen_u64_join, __wasm_sb_bindgen_u64_split};
+use crate::{
+    __wasm_sb_bindgen_i64_join, __wasm_sb_bindgen_i64_split, __wasm_sb_bindgen_u64_join,
+    __wasm_sb_bindgen_u64_split,
+};
 
 use super::{FromWasmAbi, IntoWasmAbi, OptionFromWasmAbi, OptionIntoWasmAbi, WasmAbi};
 
@@ -60,13 +63,12 @@ macro_rules! type_abi_big_bytes {
     )*)
 }
 
-
 impl IntoWasmAbi for i64 {
     type Abi = Wasm8Bytes;
 
     #[inline]
     fn into_abi(self) -> Self::Abi {
-        let Wasm8Bytes {first, last} = unsafe { __wasm_sb_bindgen_i64_split(self) };
+        let Wasm8Bytes { first, last } = unsafe { __wasm_sb_bindgen_i64_split(self) };
         Wasm8Bytes {
             first: first,
             last: last,
@@ -88,7 +90,7 @@ impl IntoWasmAbi for u64 {
 
     #[inline]
     fn into_abi(self) -> Self::Abi {
-        let Wasm8Bytes {first, last} = unsafe { __wasm_sb_bindgen_u64_split(self) };
+        let Wasm8Bytes { first, last } = unsafe { __wasm_sb_bindgen_u64_split(self) };
         Wasm8Bytes {
             first: first,
             last: last,

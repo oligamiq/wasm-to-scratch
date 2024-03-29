@@ -49,7 +49,6 @@ where
         Closure::wrap(Box::new(t).unsize())
     }
 
-
     /// A more direct version of `Closure::new` which creates a `Closure` from
     /// a `Box<dyn Fn>`/`Box<dyn FnMut>`, which is how it's kept internally.
     pub fn wrap(mut data: Box<T>) -> Closure<T> {
@@ -623,7 +622,10 @@ where
             // convert `ret` as it may throw (for `Result`, for
             // example)
             let ret = {
-                let f: *const dyn Fn(&A) -> R = FatPtr { fields: (a as u32, b as u32) }.ptr;
+                let f: *const dyn Fn(&A) -> R = FatPtr {
+                    fields: (a as u32, b as u32),
+                }
+                .ptr;
                 let arg = <A as RefFromWasmAbi>::ref_from_abi(A::Abi::join(arg1, arg2, arg3, arg4));
                 (*f)(&*arg)
             };
@@ -638,7 +640,10 @@ where
                 return;
             }
             drop(Box::from_raw(
-                FatPtr::<dyn Fn(&A) -> R> { fields: (a as u32, b as u32) }.ptr,
+                FatPtr::<dyn Fn(&A) -> R> {
+                    fields: (a as u32, b as u32),
+                }
+                .ptr,
             ));
         }
         inform(destroy::<A, R> as u32 as f64);
@@ -669,7 +674,10 @@ where
             // convert `ret` as it may throw (for `Result`, for
             // example)
             let ret = {
-                let f: *const dyn FnMut(&A) -> R = FatPtr { fields: (a as u32, b as u32) }.ptr;
+                let f: *const dyn FnMut(&A) -> R = FatPtr {
+                    fields: (a as u32, b as u32),
+                }
+                .ptr;
                 let f = f as *mut dyn FnMut(&A) -> R;
                 let arg = <A as RefFromWasmAbi>::ref_from_abi(A::Abi::join(arg1, arg2, arg3, arg4));
                 (*f)(&*arg)
@@ -685,7 +693,10 @@ where
                 return;
             }
             drop(Box::from_raw(
-                FatPtr::<dyn FnMut(&A) -> R> { fields: (a as u32, b as u32) }.ptr,
+                FatPtr::<dyn FnMut(&A) -> R> {
+                    fields: (a as u32, b as u32),
+                }
+                .ptr,
             ));
         }
         inform(destroy::<A, R> as u32 as f64);

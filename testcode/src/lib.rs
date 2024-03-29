@@ -42,9 +42,9 @@ pub fn nya(t: String) -> String {
 
 #[wasm_bindgen]
 pub fn nya_sama(t: String) -> JsValue {
-    let cb = Closure::wrap(Box::new(move |u| {
-        nya(format!("{t}: {u}"))
-    }) as Box<dyn FnMut(String) -> String>);
+    let cb = Closure::wrap(
+        Box::new(move |u| nya(format!("{t}: {u}"))) as Box<dyn FnMut(String) -> String>
+    );
 
     // Extract the `JsValue` from this `Closure`, the handle
     // on a JS function representing the closure

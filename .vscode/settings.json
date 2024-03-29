@@ -5,15 +5,18 @@
     "argumentnames",
     "bindgen",
     "canonicalize",
+    "docsrs",
     "Externref",
     "Funcref",
     "funcs",
     "getrandom",
     "Insn",
+    "miette",
     "powf",
     "powi",
     "proccode",
     "sbity",
+    "thiserror",
     "wasmparser"
 ]
 }

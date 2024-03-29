@@ -5,7 +5,7 @@ pub fn wrap_by_len(i: usize, len: usize) -> String {
     let len = format!("{:x}", len).len();
     let mut name = format!("{:x}", i);
     while name.len() < len {
-        name = format!("0{}", name);
+        name.insert_str(0, "0");
     }
     name
 }
@@ -73,4 +73,27 @@ pub fn get_preview_rect_from_block<'a>(func: &StringHashMap<Block>) -> (i64, i64
         top_y.unwrap_or_default(),
         bottom_y.unwrap_or_default(),
     )
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct GenCtx {
+    pub index_of_func_block: usize,
+    pub functions_count: usize,
+}
+
+impl GenCtx {
+    pub fn new() -> Self {
+        GenCtx {
+            index_of_func_block: 0,
+            functions_count: 0,
+        }
+    }
+
+    pub fn gen_pre_name(&self) -> String {
+        wrap_by_len(self.index_of_func_block, self.functions_count)
+    }
+
+    pub fn update_func_block(&mut self) {
+        self.index_of_func_block += 1;
+    }
 }

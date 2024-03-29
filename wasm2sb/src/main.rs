@@ -4,26 +4,36 @@ use sb_sbity::target::SpriteOrStage;
 use scratch::rewrite_dependency::rewrite_list;
 use scratch::test_data::test_project;
 
-use anyhow::Result;
+use miette::{NamedSource, Result};
 use scratch::wasm_binary;
 use util::get_preview_rect_from_block;
 
-use crate::scratch::block::procedures_definition::generate_func_block;
+use crate::error::Wasm2SbError;
 use crate::scratch::test_data::test_wasm_binary;
 use crate::util::get_type_from_func;
 
 pub mod config;
+pub mod error;
 pub mod scratch;
 pub mod util;
 pub mod wasm;
+pub use util::GenCtx;
 
 fn main() -> Result<()> {
-    let (config, path) = CommandLineArgs::parse_and_check();
+    env_logger::init_from_env(
+        env_logger::Env::new()
+            .filter("DINGHY_LOG")
+            .write_style("DINGHY_LOG_STYLE"),
+    );
+
+    let (config, path) = CommandLineArgs::parse_and_check()?;
 
     let mut project = test_project().unwrap();
     let mut sprite = None;
 
-    for target in project.project.targets.iter_mut() {
+    let internal_project = project.project.clone();
+    let mut internal_project = internal_project.write();
+    for target in internal_project.targets.iter_mut() {
         match target {
             SpriteOrStage::Sprite(sprite_impl) => {
                 sprite = Some(sprite_impl);
@@ -36,11 +46,18 @@ fn main() -> Result<()> {
     }
 
     if let Some(sprite) = sprite {
-        let blocks = &mut sprite.target.blocks;
-        let (left_x, _right_x, top_y, _bottom_y) = get_preview_rect_from_block(blocks);
         // println!("{:#?}", blocks);
 
-        let data = std::fs::read(&path)?;
+        let data = match std::fs::read(&path) {
+            Ok(data) => data,
+            Err(e) => {
+                return Err(Wasm2SbError {
+                    src: NamedSource::new("main.rs", "source2\n  text\n    here".into()),
+                    bad_bit: (2, 1).into(),
+                }
+                .into());
+            }
+        };
 
         let ty = wasm::get_ty(&data)?;
 
@@ -48,16 +65,13 @@ fn main() -> Result<()> {
 
         let mut module = walrus::Module::from_buffer(&data).unwrap();
 
-        let functions_count = module.functions().count() * 2;
-
         let function_types = &module.types;
 
-        let mut blocks_y = top_y;
-        let mut i = 0;
-        for function in module.funcs.iter() {
-            // len文字の長さで0埋め
-            let _name = util::wrap_by_len(i, functions_count);
+        let mut ctx = GenCtx::new();
 
+        let (utf8_block, _) = scratch::block::to_utf8::generator::to_utf8_generator();
+
+        for function in module.funcs.iter() {
             // println!("{:?}", function.idx);
             // println!("{:?}", function.start);
 
@@ -79,14 +93,8 @@ fn main() -> Result<()> {
                 walrus::FunctionKind::Uninitialized(_) => todo!(),
             };
 
-            let block = generate_func_block(
-                function,
-                func_type,
-                left_x,
-                &mut blocks_y,
-                (&mut i, functions_count),
-            );
-            blocks.0.extend(block.0);
+            let block = project.generate_func_block(function, func_type, &mut ctx);
+            sprite.target.blocks.0.extend(block.0);
 
             // println!("{}", serde_json::to_string(&blocks).unwrap());
 
@@ -97,13 +105,12 @@ fn main() -> Result<()> {
             // }
         }
 
-        let (utf8_block, _) = scratch::block::to_utf8::generator::to_utf8_generator();
-        blocks.0.extend(utf8_block.0);
+        sprite.target.blocks.0.extend(utf8_block.0);
     }
     // for function in module.functions() {
-        //     println!("{:?}", function);
-        //     break;
-        // }
+    //     println!("{:?}", function);
+    //     break;
+    // }
 
     #[cfg(not(target_arch = "wasm32"))]
     project.zip_file("scratch/out.sb3")?;

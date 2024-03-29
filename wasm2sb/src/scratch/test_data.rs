@@ -1,6 +1,6 @@
 use std::io::Read;
 
-use anyhow::Result;
+use miette::Result;
 use sb_itchy::target;
 
 use super::sb3::ProjectZip;
@@ -25,8 +25,6 @@ pub fn test_project() -> Result<ProjectZip> {
 }
 
 pub fn test_wasm_binary() -> Vec<u8> {
-    let bytes = include_bytes!(
-        "../../wasm_sb_bindgen_testcode.wasm"
-    );
+    let bytes = include_bytes!("../../wasm_sb_bindgen_testcode.wasm");
     bytes.to_vec()
 }

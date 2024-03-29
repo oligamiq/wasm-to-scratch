@@ -1,7 +1,8 @@
 extern crate wee_alloc;
 
-use wasm_sb_bindgen::{closure::Closure, wasm_sb_bindgen, SbError, SbValue, __wasm_sb_bindgen_debug_num};
-
+use wasm_sb_bindgen::{
+    closure::Closure, wasm_sb_bindgen, SbError, SbValue, __wasm_sb_bindgen_debug_num,
+};
 
 // #[wasm_sb_bindgen]
 // pub fn greet() -> String {
@@ -67,8 +68,7 @@ pub fn nya_3(_t: String) -> u64 {
 }
 
 #[wasm_sb_bindgen]
-pub fn nya_4(_t: String) {
-}
+pub fn nya_4(_t: String) {}
 
 #[wasm_sb_bindgen]
 pub fn woof(t: String, n: usize) -> String {
@@ -76,8 +76,7 @@ pub fn woof(t: String, n: usize) -> String {
 }
 
 #[wasm_sb_bindgen]
-pub fn kow(t: char) -> String
-{
+pub fn kow(t: char) -> String {
     format!("woof(=^・・^=) {:?}", t)
 }
 

@@ -15,12 +15,16 @@ crate-type = ["cdylib", "rlib"]
 # https://docs.rs/rs-sb3/
 sb-sbity = { version = "0.6.0", git = "https://github.com/rusty-scratch/sb-sbity" }
 sb-itchy = { git = "https://github.com/oligamiq/sb-itchy" }
-anyhow = "1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 parking_lot = "0.12"
 walrus = "0.20"
-clap = { version = "4.5", features = ["derive"] }
+
+# log
+log = "0.4"
+env_logger = "0.11"
+miette = { version = "7.2.0", features = ["fancy"] }
+thiserror = "1.0.58"
 
 [dependencies.futures-lite]
 version = "2.3"
@@ -62,6 +66,8 @@ version = "0.2"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies.clap]
 version = "4.5"
+default-features = false
+features = ["derive", "std"]
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies.cargo_metadata]
 version = "0.18"
