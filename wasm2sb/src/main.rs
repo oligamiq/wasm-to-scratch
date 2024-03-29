@@ -1,9 +1,10 @@
+use colored::Colorize;
 use config::CommandLineArgs;
 use sb_sbity::target::SpriteOrStage;
 use scratch::rewrite_dependency::rewrite_list;
 use scratch::test_data::test_project;
 
-use crate::util::get_type_from_func;
+use crate::{util::get_type_from_func, wasm::adjust::{rm_export_fn, check_rm_import_fn, wasm_opt_module}};
 use eyre::{Result, WrapErr};
 
 pub mod config;
@@ -13,11 +14,7 @@ pub mod wasm;
 pub use util::GenCtx;
 
 fn main() -> Result<()> {
-    env_logger::init_from_env(
-        env_logger::Env::new()
-            .filter("WASM2SB_LOG")
-            .write_style("WASM2SB_LOG_STYLE"),
-    );
+    tracing_subscriber::fmt::init();
 
     let (config, path) =
         CommandLineArgs::parse_and_check().wrap_err("failed to parse command line arguments")?;
@@ -45,14 +42,25 @@ fn main() -> Result<()> {
         let data = std::fs::read(&path).wrap_err(format!("failed to read file: {:?}", path))?;
 
         let ty = wasm::get_ty(&data).wrap_err(format!("failed to get type from wasm"))?;
+        println!("{}", "original func type loaded successfully!".green().bold());
 
-        println!("ty: {:?}", ty);
+        // println!("ty: {:?}", ty);
 
         let mut module = walrus::Module::from_buffer(&data).unwrap();
+        println!("{}", "module loaded successfully!".green().bold());
+        rm_export_fn(&mut module, ty.keys().map(|k| k.to_string()).collect())?;
+        println!("{}", "describe function removed successfully!".green().bold());
+        let module = wasm_opt_module(module)?;
+        println!("{}", "module optimized successfully!".green().bold());
+        check_rm_import_fn(&module)?;
+
+        log::info!("module: {:#?}", module.imports);
+        log::info!("module: {:#?}", module.exports);
 
         let function_types = &module.types;
 
         let mut ctx = GenCtx::new();
+        ctx.functions_count = module.funcs.iter().count() * 2;
 
         let (utf8_block, _) = scratch::block::to_utf8::generator::to_utf8_generator();
 
@@ -92,13 +100,20 @@ fn main() -> Result<()> {
 
         sprite.target.blocks.0.extend(utf8_block.0);
     }
+
     // for function in module.functions() {
     //     println!("{:?}", function);
     //     break;
     // }
 
+    std::mem::drop(internal_project);
+    println!("{}", "project generated successfully!".green().bold());
+    println!("{}", "zipping project...".green().bold());
+
     #[cfg(not(target_arch = "wasm32"))]
     project.zip_file("scratch/out.sb3")?;
+
+    println!("{}", "project zipped successfully!".green().bold());
 
     Ok(())
 }

@@ -6,7 +6,9 @@ use std::{
 
 use cargo_metadata::{CargoOpt, Message, MetadataCommand};
 use clap::{Args, Parser, Subcommand};
-use eyre::Result;
+use colored::Colorize;
+use eyre::{Context, Result};
+use path_slash::PathBufExt as _;
 
 /// Command line arguments
 #[derive(Parser, Debug)]
@@ -76,9 +78,9 @@ impl CommandLineArgs {
                 let package = PathBuf::from(package);
 
                 let metadata = MetadataCommand::new()
-                    .manifest_path(package.join("Cargo.toml"))
+                    .manifest_path(package.join("Cargo.toml").to_slash().unwrap().to_string())
                     .features(CargoOpt::AllFeatures)
-                    .exec()?;
+                    .exec().wrap_err("failed to find Cargo.toml")?;
 
                 let mut options = vec!["build", "--message-format=json-render-diagnostics"];
                 if !debug {
@@ -97,7 +99,7 @@ impl CommandLineArgs {
 
                     let reader = std::io::BufReader::new(command.stdout.take().unwrap());
 
-                    println!("Building package: {:?}", package);
+                    println!("{}{:?}", "Building package: ".green(), package);
 
                     for message in cargo_metadata::Message::parse_stream(reader) {
                         match message.unwrap() {
@@ -110,7 +112,7 @@ impl CommandLineArgs {
                     }
                 }
 
-                println!("Build finished\n\n");
+                println!("{}", "Build finished\n".green());
 
                 let path = if *debug {
                     metadata

@@ -2,7 +2,8 @@ use std::collections::HashMap;
 
 use crate::wasm::descriptor::Descriptor;
 
-use eyre::{Context, Result};
+use colored::Colorize as _;
+use eyre::{Context, Result, eyre};
 
 use self::interpreter_descriptor::interpreter_descriptor;
 
@@ -11,6 +12,34 @@ pub mod decode;
 pub mod descriptor;
 pub mod interpreter_descriptor;
 pub mod sb;
+pub mod scheme_versions;
+
+pub fn load_schema_version(module: &wain_ast::Module) -> Result<()> {
+    for func in &module.funcs {
+        match &func.kind {
+            wain_ast::FuncKind::Import(import) => {
+                if import.name.0.starts_with("schema_version_") {
+                    let name = import.name.0[15..].to_string();
+                    let version = name.replace("_", ".");
+                    let version = version.parse::<semver::Version>().unwrap();
+                    let versions = scheme_versions::scheme_versions();
+                    let max_version = versions.last().unwrap();
+                    let pre_version = &versions[versions.len() - 2];
+                    if version > *max_version {
+                        return Err(eyre!("schema version is too new: {} > {}", version, max_version))
+                    }
+                    if version < *pre_version {
+                        return Err(eyre!("schema version is too old: {} < {}", version, pre_version))
+                    }
+                    return Ok(())
+                }
+            }
+            _ => ()
+        }
+    };
+
+    Err(eyre!("schema version not found"))
+}
 
 pub fn get_ty(buff: &Vec<u8>) -> Result<HashMap<String, Descriptor>> {
     let module = match wain_syntax_binary::parse(buff) {
@@ -21,6 +50,9 @@ pub fn get_ty(buff: &Vec<u8>) -> Result<HashMap<String, Descriptor>> {
         }
     }
     .module;
+
+    load_schema_version(&module)?;
+    println!("{}", "schema version loaded successfully!".green().bold());
 
     let prefix = "__wasm_sb_bindgen_describe_";
     let exports = module
