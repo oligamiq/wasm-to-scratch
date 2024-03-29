@@ -23,8 +23,9 @@ walrus = "0.20"
 # log
 log = "0.4"
 env_logger = "0.11"
-miette = { version = "7.2.0", features = ["fancy"] }
-thiserror = "1.0.58"
+
+# error
+eyre = { version = "0.6", default-features = false, features = ["auto-install", "track-caller"] }
 
 [dependencies.futures-lite]
 version = "2.3"
@@ -43,15 +44,10 @@ version = "0.2"
 [dependencies.wain-exec]
 version = "0.3"
 
-# [target.'cfg(not(target_arch = "wasm32"))'.dependencies.zip]
-# default-features = false
-# version = "0.6"
-# features = ["deflate"]
-
-# [target.'cfg(target_arch = "wasm32")'.dependencies.async_zip]
 [dependencies.async_zip]
 version = "0.0"
 default-features = false
+
 features = ["full-wasm"]
 
 [dependencies.id-arena]

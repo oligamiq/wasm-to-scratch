@@ -3,7 +3,7 @@ use std::{collections::HashMap, sync::Arc};
 use async_zip::ZipEntryBuilder;
 use futures::{io::Cursor, AsyncReadExt};
 use futures_lite as futures;
-use miette::Result;
+use log::warn;
 use parking_lot::RwLock;
 use sb_itchy::{
     build_context::{GlobalVarListContext, TargetContext},
@@ -12,9 +12,11 @@ use sb_itchy::{
 };
 use sb_sbity::{comment::Comment, project::Project, target::SpriteOrStage};
 
-use crate::{error::Wasm2SbError, util::get_preview_rect_from_block};
+use crate::util::get_preview_rect_from_block;
 
 use super::rewrite_dependency::rewrite_list;
+
+use eyre::{eyre, Context, Result};
 
 pub type CommentMap = HashMap<Uid, Comment>;
 
@@ -47,18 +49,9 @@ impl ProjectZip {
     pub fn new(path: String) -> Result<Self> {
         use std::io::Read as _;
 
-        use crate::error::Wasm2SbError;
+        let project_data_zip =
+            std::fs::File::open(&path).wrap_err(format!("failed to open file: {:?}", path))?;
 
-        let project_data_zip = match std::fs::File::open(&path) {
-            Ok(file) => file,
-            Err(_) => {
-                return Err(Wasm2SbError {
-                    src: miette::NamedSource::new("sb3.rs", "source\n  text\n    here".into()),
-                    bad_bit: (53, 66).into(),
-                }
-                .into())
-            }
-        };
         let zip_data = std::io::BufReader::new(project_data_zip);
         Self::new_from_data(
             path,
@@ -70,18 +63,10 @@ impl ProjectZip {
         let path = path;
         let cursor = Cursor::new(bytes.clone());
 
-        let mut archive = match futures::future::block_on(async {
+        let mut archive = futures::future::block_on(async {
             async_zip::base::read::seek::ZipFileReader::new(cursor).await
-        }) {
-            Ok(archive) => archive,
-            Err(_) => {
-                return Err(Wasm2SbError {
-                    src: miette::NamedSource::new("sb3.rs", "source\n  text\n    here".into()),
-                    bad_bit: (53, 66).into(),
-                }
-                .into())
-            }
-        };
+        })
+        .wrap_err("failed to read zip file")?;
 
         let index = match archive.file().entries().iter().position(|entry| {
             match entry.filename().as_str() {
@@ -90,49 +75,18 @@ impl ProjectZip {
             }
         }) {
             Some(index) => index,
-            None => {
-                return Err(Wasm2SbError {
-                    src: miette::NamedSource::new("sb3.rs", "source\n  text\n    here".into()),
-                    bad_bit: (53, 66).into(),
-                }
-                .into())
-            }
+            None => return Err(eyre!("failed to find project.json in zip file")),
         };
 
         let mut reader =
-            match futures::future::block_on(async { archive.reader_without_entry(index).await }) {
-                Ok(reader) => reader,
-                Err(_) => {
-                    return Err(Wasm2SbError {
-                        src: miette::NamedSource::new("sb3.rs", "source\n  text\n    here".into()),
-                        bad_bit: (53, 66).into(),
-                    }
-                    .into())
-                }
-            };
+            futures::future::block_on(async { archive.reader_without_entry(index).await })
+                .wrap_err("failed to read project.json from zip file")?;
 
         let mut buffer = Vec::new();
-        match futures::future::block_on(async { reader.read_to_end(&mut buffer).await }) {
-            Ok(_) => (),
-            Err(e) => {
-                return Err(Wasm2SbError {
-                    src: miette::NamedSource::new("sb3.rs", e.to_string()),
-                    bad_bit: (53, 66).into(),
-                }
-                .into())
-            }
-        };
+        futures::future::block_on(async { reader.read_to_end(&mut buffer).await })
+            .wrap_err("failed to read to end project.json from zip file")?;
 
-        let json = match std::str::from_utf8(&buffer) {
-            Ok(json) => json,
-            Err(_) => {
-                return Err(Wasm2SbError {
-                    src: miette::NamedSource::new("sb3.rs", "source\n  text\n    here".into()),
-                    bad_bit: (53, 66).into(),
-                }
-                .into())
-            }
-        };
+        let json = std::str::from_utf8(&buffer).wrap_err("failed to parse to utf8 project.json")?;
 
         let mut project = serde_json::from_str::<Project>(json).unwrap();
 
@@ -151,6 +105,8 @@ impl ProjectZip {
         }
 
         if sprite.is_none() {
+            warn!("failed to find sprite in project, creating new sprite");
+
             let sprite_builder = SpriteBuilder::default();
             let new_sprite = sprite_builder.build(
                 &mut Vec::default(),
@@ -166,11 +122,7 @@ impl ProjectZip {
                 _ => None,
             });
             if sprite.is_none() {
-                return Err(Wasm2SbError {
-                    src: miette::NamedSource::new("sb3.rs", "source\n  text\n    here".into()),
-                    bad_bit: (53, 66).into(),
-                }
-                .into());
+                return Err(eyre!("failed to create sprite"));
             }
         }
 
@@ -201,104 +153,49 @@ impl ProjectZip {
     }
 
     pub fn zip(&self) -> Result<Vec<u8>> {
-        let json = match serde_json::to_string(&*self.project.read()) {
-            Ok(json) => json,
-            Err(_) => {
-                return Err(Wasm2SbError {
-                    src: miette::NamedSource::new("sb3.rs", "source\n  text\n    here".into()),
-                    bad_bit: (53, 66).into(),
-                }
-                .into())
-            }
-        };
+        let json = serde_json::to_string(&*self.project.read()).wrap_err(
+            "failed to serialize project to json, this is a bug, please report it to the developers",
+        )?;
 
         let cursor = Cursor::new(self.buff.clone());
 
-        let mut archive = match futures::future::block_on(async {
+        let mut archive = futures::future::block_on(async {
             async_zip::base::read::seek::ZipFileReader::new(cursor).await
-        }) {
-            Ok(archive) => archive,
-            Err(_) => {
-                return Err(Wasm2SbError {
-                    src: miette::NamedSource::new("sb3.rs", "source\n  text\n    here".into()),
-                    bad_bit: (53, 66).into(),
-                }
-                .into())
-            }
-        };
+        })
+        .wrap_err("failed to read broken zip file")?;
 
         let mut buff = Vec::new();
         let mut writer = async_zip::base::write::ZipFileWriter::new(&mut buff);
 
         for i in 0..archive.file().entries().len() {
-            let filename = match archive.file().entries().get(i).unwrap().filename().as_str() {
-                Ok(filename) => filename,
-                Err(_) => {
-                    return Err(Wasm2SbError {
-                        src: miette::NamedSource::new("sb3.rs", "source\n  text\n    here".into()),
-                        bad_bit: (53, 66).into(),
-                    }
-                    .into())
-                }
-            }
-            .to_string();
+            let filename = archive.file().entries().get(i).unwrap().filename().as_str().wrap_err(
+                "failed to get filename from zip file, this is a bug, please report it to the developers",
+            )?.to_string();
 
             let buffer = if filename == "project.json" {
                 json.as_bytes().to_vec()
             } else {
                 let mut reader =
-                    match futures::future::block_on(async { archive.reader_without_entry(i).await }) {
-                        Ok(reader) => reader,
-                        Err(_) => {
-                            return Err(Wasm2SbError {
-                                src: miette::NamedSource::new("sb3.rs", "source\n  text\n    here".into()),
-                                bad_bit: (53, 66).into(),
-                            }
-                            .into())
-                        }
-                    };
+                    futures::future::block_on(async { archive.reader_without_entry(i).await })
+                        .wrap_err("failed to read entry from zip file")?;
 
                 let mut buffer = Vec::new();
-                match futures::future::block_on(async { reader.read_to_end(&mut buffer).await }) {
-                    Ok(_) => (),
-                    Err(_) => {
-                        return Err(Wasm2SbError {
-                            src: miette::NamedSource::new("sb3.rs", "source\n  text\n    here".into()),
-                            bad_bit: (53, 66).into(),
-                        }
-                        .into())
-                    }
-                };
+                futures::future::block_on(async { reader.read_to_end(&mut buffer).await })
+                    .wrap_err("failed to read to end entry from zip file")?;
                 buffer
             };
 
             let entry = archive.file().entries().get(i).unwrap();
 
             let builder = ZipEntryBuilder::new(entry.filename().to_owned(), entry.compression());
-            match futures::future::block_on(async {
+            futures::future::block_on(async {
                 writer.write_entry_whole(builder, buffer.as_slice()).await
-            }) {
-                Ok(_) => (),
-                Err(_) => {
-                    return Err(Wasm2SbError {
-                        src: miette::NamedSource::new("sb3.rs", "source\n  text\n    here".into()),
-                        bad_bit: (53, 66).into(),
-                    }
-                    .into())
-                }
-            };
+            })
+            .wrap_err("failed to write entry to zip file")?;
         }
 
-        match futures::future::block_on(async { writer.close().await }) {
-            Ok(_) => (),
-            Err(_) => {
-                return Err(Wasm2SbError {
-                    src: miette::NamedSource::new("sb3.rs", "source\n  text\n    here".into()),
-                    bad_bit: (53, 66).into(),
-                }
-                .into())
-            }
-        };
+        futures::future::block_on(async { writer.close().await })
+            .wrap_err("failed to close zip file")?;
 
         Ok(buff)
     }
@@ -314,61 +211,31 @@ impl ProjectZip {
 
         if out.parent().is_some() {
             if out.parent().unwrap().parent().is_some_and(|i| i.exists()) {
-                return Err(Wasm2SbError {
-                    src: miette::NamedSource::new("sb3.rs", "source\n  text\n    here".into()),
-                    bad_bit: (53, 66).into(),
-                }.into());
+                return Err(eyre!(
+                    "ancestor directory does not exist: {:?}",
+                    out.parent().unwrap().parent()
+                ));
             }
             if out.parent().is_some() && !out.parent().unwrap().exists() {
-                match std::fs::create_dir_all(out.parent().unwrap()) {
-                    Ok(_) => (),
-                    Err(_) => {
-                        return Err(Wasm2SbError {
-                            src: miette::NamedSource::new("sb3.rs", "source\n  text\n    here".into()),
-                            bad_bit: (53, 66).into(),
-                        }
-                        .into())
-                    }
-                };
+                std::fs::create_dir_all(out.parent().unwrap()).wrap_err(format!(
+                    "failed to create directory: {:?}",
+                    out.parent().unwrap()
+                ))?;
             }
         }
 
         if out.exists() {
-            match std::fs::remove_file(&out) {
-                Ok(_) => (),
-                Err(_) => {
-                    return Err(Wasm2SbError {
-                        src: miette::NamedSource::new("sb3.rs", "source\n  text\n    here".into()),
-                        bad_bit: (53, 66).into(),
-                    }
-                    .into())
-                }
-            };
+            warn!("file already exists, removing: {:?}", out);
+            std::fs::remove_file(&out).wrap_err(format!("failed to remove file: {:?}", out))?;
         }
 
         let zipped = self.zip()?;
 
-        let mut out = match std::fs::File::create(out) {
-            Ok(file) => file,
-            Err(_) => {
-                return Err(Wasm2SbError {
-                    src: miette::NamedSource::new("sb3.rs", "source\n  text\n    here".into()),
-                    bad_bit: (53, 66).into(),
-                }
-                .into())
-            }
-        };
+        let mut out =
+            std::fs::File::create(out).wrap_err(format!("failed to create file: {:?}", out))?;
 
-        match out.write_all(&zipped) {
-            Ok(_) => (),
-            Err(_) => {
-                return Err(Wasm2SbError {
-                    src: miette::NamedSource::new("sb3.rs", "source\n  text\n    here".into()),
-                    bad_bit: (53, 66).into(),
-                }
-                .into())
-            }
-        };
+        out.write_all(&zipped)
+            .wrap_err(format!("failed to write to file: {:?}", out))?;
 
         Ok(())
     }

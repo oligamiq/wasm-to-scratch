@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
-use crate::{error::Wasm2SbError, wasm::descriptor::Descriptor};
+use crate::wasm::descriptor::Descriptor;
+
+use eyre::{Context, Result};
 
 use self::interpreter_descriptor::interpreter_descriptor;
 
@@ -10,15 +12,12 @@ pub mod descriptor;
 pub mod interpreter_descriptor;
 pub mod sb;
 
-use miette::{miette, NamedSource, Result};
-
 pub fn get_ty(buff: &Vec<u8>) -> Result<HashMap<String, Descriptor>> {
     let module = match wain_syntax_binary::parse(buff) {
         Ok(m) => m,
         Err(err) => {
-            return Err(Wasm2SbError::return_with_error(
-                miette!("err: {:?}", err.to_string()),
-            ));
+            return Err(eyre::eyre!("{:?}", err.to_string()))
+                .wrap_err(format!("failed to parse wasm binary"));
         }
     }
     .module;

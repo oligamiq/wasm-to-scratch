@@ -1,7 +1,4 @@
-use std::io::Read;
-
-use miette::Result;
-use sb_itchy::target;
+use eyre::Result;
 
 use super::sb3::ProjectZip;
 

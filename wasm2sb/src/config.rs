@@ -6,9 +6,7 @@ use std::{
 
 use cargo_metadata::{CargoOpt, Message, MetadataCommand};
 use clap::{Args, Parser, Subcommand};
-use miette::{NamedSource, Result};
-
-use crate::error::{FileNotFoundError, Wasm2SbError};
+use eyre::Result;
 
 /// Command line arguments
 #[derive(Parser, Debug)]
@@ -77,19 +75,10 @@ impl CommandLineArgs {
                 // };
                 let package = PathBuf::from(package);
 
-                let metadata = match MetadataCommand::new()
+                let metadata = MetadataCommand::new()
                     .manifest_path(package.join("Cargo.toml"))
                     .features(CargoOpt::AllFeatures)
-                    .exec()
-                {
-                    Ok(metadata) => metadata,
-                    Err(e) => {
-                        return Err(FileNotFoundError {
-                            src: package.join("Cargo.toml").into(),
-                        }
-                        .into());
-                    }
-                };
+                    .exec()?;
 
                 let mut options = vec!["build", "--message-format=json-render-diagnostics"];
                 if !debug {
@@ -141,10 +130,7 @@ impl CommandLineArgs {
             } => {
                 let wasm_path = PathBuf::from(&wasm);
                 if !wasm_path.exists() {
-                    return Err(Wasm2SbError {
-                        src: NamedSource::new("main.rs", "source\n  text\n    here".into()),
-                        bad_bit: (0, 0).into(),
-                    }.into());
+                    return Err(eyre::eyre!("Wasm file not found: {:?}", wasm_path));
                 }
                 Ok((opt, wasm_path))
             }

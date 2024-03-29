@@ -1,19 +1,12 @@
-use clap::Parser as _;
 use config::CommandLineArgs;
 use sb_sbity::target::SpriteOrStage;
 use scratch::rewrite_dependency::rewrite_list;
 use scratch::test_data::test_project;
 
-use miette::{NamedSource, Result};
-use scratch::wasm_binary;
-use util::get_preview_rect_from_block;
-
-use crate::error::Wasm2SbError;
-use crate::scratch::test_data::test_wasm_binary;
 use crate::util::get_type_from_func;
+use eyre::{Result, WrapErr};
 
 pub mod config;
-pub mod error;
 pub mod scratch;
 pub mod util;
 pub mod wasm;
@@ -22,11 +15,12 @@ pub use util::GenCtx;
 fn main() -> Result<()> {
     env_logger::init_from_env(
         env_logger::Env::new()
-            .filter("DINGHY_LOG")
-            .write_style("DINGHY_LOG_STYLE"),
+            .filter("WASM2SB_LOG")
+            .write_style("WASM2SB_LOG_STYLE"),
     );
 
-    let (config, path) = CommandLineArgs::parse_and_check()?;
+    let (config, path) =
+        CommandLineArgs::parse_and_check().wrap_err("failed to parse command line arguments")?;
 
     let mut project = test_project().unwrap();
     let mut sprite = None;
@@ -48,18 +42,9 @@ fn main() -> Result<()> {
     if let Some(sprite) = sprite {
         // println!("{:#?}", blocks);
 
-        let data = match std::fs::read(&path) {
-            Ok(data) => data,
-            Err(e) => {
-                return Err(Wasm2SbError {
-                    src: NamedSource::new("main.rs", "source2\n  text\n    here".into()),
-                    bad_bit: (2, 1).into(),
-                }
-                .into());
-            }
-        };
+        let data = std::fs::read(&path).wrap_err(format!("failed to read file: {:?}", path))?;
 
-        let ty = wasm::get_ty(&data)?;
+        let ty = wasm::get_ty(&data).wrap_err(format!("failed to get type from wasm"))?;
 
         println!("ty: {:?}", ty);
 

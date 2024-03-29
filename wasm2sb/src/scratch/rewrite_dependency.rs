@@ -2,7 +2,7 @@ use sb_sbity::{list::List as SbList, string_hashmap::StringHashMap};
 
 use crate::scratch::generate_id::generate_id;
 
-use super::block::to_utf8::{generator::to_utf8_generator, unicode::all_unicode};
+use super::block::to_utf8::generator::to_utf8_generator;
 
 pub fn rewrite_list(list: &mut StringHashMap<SbList>) {
     let names = list.0.keys().cloned().collect::<Vec<String>>();

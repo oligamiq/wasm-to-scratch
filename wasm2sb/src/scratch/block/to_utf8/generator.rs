@@ -1,11 +1,10 @@
 use std::collections::HashMap;
 
 use sb_itchy::{
-    block::{BlockBuilder, BlockFieldBuilder, BlockInputBuilder, StackOrValue},
+    block::{BlockFieldBuilder, BlockInputBuilder},
     blocks::set_var_to,
     build_context::TargetContext,
     data::ListBuilder,
-    stack::StackBuilder,
 };
 use sb_sbity::{
     block::{Block, BlockInputValue},

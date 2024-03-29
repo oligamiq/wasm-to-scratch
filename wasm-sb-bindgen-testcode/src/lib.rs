@@ -1,8 +1,6 @@
 extern crate wee_alloc;
 
-use wasm_sb_bindgen::{
-    closure::Closure, wasm_sb_bindgen, SbError, SbValue, __wasm_sb_bindgen_debug_num,
-};
+use wasm_sb_bindgen::{wasm_sb_bindgen, SbError};
 
 // #[wasm_sb_bindgen]
 // pub fn greet() -> String {
