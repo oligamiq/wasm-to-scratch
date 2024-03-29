@@ -11,7 +11,10 @@ pub mod config;
 pub mod scratch;
 pub mod util;
 pub mod wasm;
+pub mod test_exec;
 pub use util::GenCtx;
+#[allow(unused_imports)]
+use crate::test_exec::test_exec;
 
 fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
@@ -114,6 +117,8 @@ fn main() -> Result<()> {
     project.zip_file("scratch/out.sb3")?;
 
     println!("{}", "project zipped successfully!".green().bold());
+
+    // test_exec()?;
 
     Ok(())
 }

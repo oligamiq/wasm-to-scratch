@@ -15,6 +15,7 @@
     "powf",
     "powi",
     "proccode",
+    "sama",
     "sbity",
     "thiserror",
     "wasmparser"

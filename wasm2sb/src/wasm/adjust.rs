@@ -17,7 +17,7 @@ pub fn rm_export_fn(module: &mut Module, rm_types: Vec<String>) -> Result<()> {
 }
 
 pub fn check_rm_import_fn(module: &Module) -> Result<()> {
-    let scheme_version_id = match module
+    match module
         .imports.iter().find(|import| {
             import.name.starts_with("schema_version_")
     }) {
@@ -25,7 +25,7 @@ pub fn check_rm_import_fn(module: &Module) -> Result<()> {
         None => (),
     };
 
-    let wasm_sb_bindgen_version_id = match module
+    match module
         .imports.iter().find(|import| {
             import.name.starts_with("wasm_sb_bindgen_version_")
     }) {
@@ -33,7 +33,7 @@ pub fn check_rm_import_fn(module: &Module) -> Result<()> {
         None => (),
     };
 
-    let describe_id = match module
+    match module
         .imports.iter().find(|export| {
             export.name.starts_with("__wasm_sb_bindgen_describe")
     }) {
@@ -54,6 +54,9 @@ pub fn wasm_opt_module(mut module: Module) -> Result<Module> {
         tmp.path(),
         tmp.path(),
     )?;
+
+    // copy on debug
+    std::fs::copy(tmp.path(), "debug.wasm")?;
 
     // load
     let module = walrus::Module::from_file(tmp.path()).map_err(|e| eyre::eyre!("{:?}", e.to_string()))?;

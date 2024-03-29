@@ -1,5 +1,7 @@
 extern crate wee_alloc;
 
+use std::{cell::OnceCell, fmt::format, sync::{atomic::AtomicBool, OnceLock}};
+
 use wasm_sb_bindgen::{wasm_sb_bindgen, SbError};
 
 // #[wasm_sb_bindgen]
@@ -48,9 +50,14 @@ pub fn nya(t: String) -> String {
 //     ret
 // }
 
+// #[wasm_sb_bindgen]
+// pub fn nya_sama() -> String {
+//     "nya_sama2".into()
+// }
+
 #[wasm_sb_bindgen]
 pub fn nya_sama() -> String {
-    "nya_sama".into()
+    format!("nya_sama2")
 }
 
 #[wasm_sb_bindgen]
