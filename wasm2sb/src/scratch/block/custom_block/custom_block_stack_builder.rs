@@ -39,7 +39,7 @@ impl CustomStackBuilder {
     pub fn build(
         self,
         comment_buff: &mut HashMap<Uid, Comment>,
-        target_context: &mut TargetContext,
+        target_context: &TargetContext,
     ) -> HashMap<Uid, Block> {
         let mut stack_b = self.stack_b.clone();
         let mut previous_block = (self.first_block.1, Uid::new(self.first_block.0));

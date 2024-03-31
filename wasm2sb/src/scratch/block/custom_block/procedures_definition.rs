@@ -13,7 +13,7 @@ use sb_sbity::{
     string_hashmap::StringHashMap,
 };
 use walrus::{Function, Type, ValType};
-
+use crate::pre_name::PRE_FUNC_NAME;
 use super::{
     custom_block_func::CustomBlockInputType, custom_block_stack_builder::CustomStackBuilder,
 };
@@ -27,9 +27,8 @@ impl ProjectZip {
         func_type: &Type,
         ctx: &mut GenCtx,
     ) -> StringHashMap<Block> {
-        let pre_name = "__wasm_internal_func_";
         let params_len = func_type.params().len();
-        let name = format!("{}{}", pre_name, ctx.gen_pre_name());
+        let name = format!("{PRE_FUNC_NAME}{}", ctx.gen_pre_name());
         let mut func_type = func_type
             .params()
             .iter()

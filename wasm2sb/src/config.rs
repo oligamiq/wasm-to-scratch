@@ -80,7 +80,8 @@ impl CommandLineArgs {
                 let metadata = MetadataCommand::new()
                     .manifest_path(package.join("Cargo.toml").to_slash().unwrap().to_string())
                     .features(CargoOpt::AllFeatures)
-                    .exec().wrap_err("failed to find Cargo.toml")?;
+                    .exec()
+                    .wrap_err("failed to find Cargo.toml")?;
 
                 let mut options = vec!["build", "--message-format=json-render-diagnostics"];
                 if !debug {

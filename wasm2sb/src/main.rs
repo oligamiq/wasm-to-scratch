@@ -4,17 +4,22 @@ use sb_sbity::target::SpriteOrStage;
 use scratch::rewrite_dependency::rewrite_list;
 use scratch::test_data::test_project;
 
-use crate::{util::get_type_from_func, wasm::adjust::{rm_export_fn, check_rm_import_fn, wasm_opt_module}};
+use crate::{
+    scratch::block::buddy_block::generate_buddy_block,
+    util::get_type_from_func,
+    wasm::adjust::{check_rm_import_fn, rm_export_fn, wasm_opt_module},
+};
 use eyre::{Result, WrapErr};
 
 pub mod config;
 pub mod scratch;
+pub mod test_exec;
 pub mod util;
 pub mod wasm;
-pub mod test_exec;
-pub use util::GenCtx;
+pub mod pre_name;
 #[allow(unused_imports)]
 use crate::test_exec::test_exec;
+pub use util::GenCtx;
 
 fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
@@ -39,70 +44,79 @@ fn main() -> Result<()> {
         }
     }
 
-    if let Some(sprite) = sprite {
-        // println!("{:#?}", blocks);
+    let mut sprite = sprite.unwrap();
 
-        let data = std::fs::read(&path).wrap_err(format!("failed to read file: {:?}", path))?;
+    // println!("{:#?}", blocks);
 
-        let ty = wasm::get_ty(&data).wrap_err(format!("failed to get type from wasm"))?;
-        println!("{}", "original func type loaded successfully!".green().bold());
+    let data = std::fs::read(&path).wrap_err(format!("failed to read file: {:?}", path))?;
 
-        // println!("ty: {:?}", ty);
+    let ty = wasm::get_ty(&data).wrap_err(format!("failed to get type from wasm"))?;
+    println!(
+        "{}",
+        "original func type loaded successfully!".green().bold()
+    );
 
-        let mut module = walrus::Module::from_buffer(&data).unwrap();
-        println!("{}", "module loaded successfully!".green().bold());
-        rm_export_fn(&mut module, ty.keys().map(|k| k.to_string()).collect())?;
-        println!("{}", "describe function removed successfully!".green().bold());
-        let module = wasm_opt_module(module)?;
-        println!("{}", "module optimized successfully!".green().bold());
-        check_rm_import_fn(&module)?;
+    // println!("ty: {:?}", ty);
 
-        log::info!("module: {:#?}", module.imports);
-        log::info!("module: {:#?}", module.exports);
+    let mut module = walrus::Module::from_buffer(&data).unwrap();
+    println!("{}", "module loaded successfully!".green().bold());
+    rm_export_fn(&mut module, ty.keys().map(|k| k.to_string()).collect())?;
+    println!(
+        "{}",
+        "describe function removed successfully!".green().bold()
+    );
+    let module = wasm_opt_module(module)?;
+    println!("{}", "module optimized successfully!".green().bold());
+    check_rm_import_fn(&module)?;
 
-        let function_types = &module.types;
+    log::info!("module: {:#?}", module.imports);
+    log::info!("module: {:#?}", module.exports);
 
-        let mut ctx = GenCtx::new();
-        ctx.functions_count = module.funcs.iter().count() + module.exports.iter().count();
+    let function_types = &module.types;
 
-        let (utf8_block, _) = scratch::block::to_utf8::generator::to_utf8_generator();
+    let mut ctx = GenCtx::new();
+    ctx.functions_count = module.funcs.iter().count() + module.exports.iter().count();
 
-        for function in module.funcs.iter() {
-            // println!("{:?}", function.idx);
-            // println!("{:?}", function.start);
+    let (utf8_block, _) = scratch::block::to_utf8::generator::to_utf8_generator();
 
-            let func_type = get_type_from_func(&function, function_types);
-            // println!("function: {:?}", function);
-            // println!("func_type: {:?}", func_type);
+    for function in module.funcs.iter() {
+        // println!("{:?}", function.idx);
+        // println!("{:?}", function.start);
 
-            match &function.kind {
-                walrus::FunctionKind::Import(import) => {
-                    println!("import {:?}", function.id());
-                    println!("{:?}", import);
-                }
-                walrus::FunctionKind::Local(locals) => {
-                    println!("local {:?}", function.id());
-                    // println!("{:?}", locals);
-                    println!("{:?}", func_type);
-                    println!("");
-                }
-                walrus::FunctionKind::Uninitialized(_) => todo!(),
-            };
+        let func_type = get_type_from_func(&function, function_types);
+        // println!("function: {:?}", function);
+        // println!("func_type: {:?}", func_type);
 
-            let block = project.generate_func_block(function, func_type, &mut ctx);
-            sprite.target.blocks.0.extend(block.0);
+        match &function.kind {
+            walrus::FunctionKind::Import(import) => {
+                println!("import {:?}", function.id());
+                println!("{:?}", import);
+            }
+            walrus::FunctionKind::Local(locals) => {
+                println!("local {:?}", function.id());
+                // println!("{:?}", locals);
+                println!("{:?}", func_type);
+                println!("");
+            }
+            walrus::FunctionKind::Uninitialized(_) => todo!(),
+        };
 
-            // println!("{}", serde_json::to_string(&blocks).unwrap());
+        let block = project.generate_func_block(function, func_type, &mut ctx);
+        sprite.target.blocks.0.extend(block.0);
 
-            // println!("func: {:#?}", function);
+        // println!("{}", serde_json::to_string(&blocks).unwrap());
 
-            // if i == 1 {
-            //     break;
-            // }
-        }
+        // println!("func: {:#?}", function);
 
-        sprite.target.blocks.0.extend(utf8_block.0);
+        // if i == 1 {
+        //     break;
+        // }
     }
+
+    sprite.target.blocks.0.extend(utf8_block.0);
+
+    let blocks = generate_buddy_block(&project, 16, 4)?;
+    sprite.target.blocks.0.extend(blocks.0);
 
     // for function in module.functions() {
     //     println!("{:?}", function);

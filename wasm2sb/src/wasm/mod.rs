@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::wasm::descriptor::Descriptor;
 
 use colored::Colorize as _;
-use eyre::{Context, Result, eyre};
+use eyre::{eyre, Context, Result};
 
 use self::interpreter_descriptor::interpreter_descriptor;
 
@@ -26,17 +26,25 @@ pub fn load_schema_version(module: &wain_ast::Module) -> Result<()> {
                     let max_version = versions.last().unwrap();
                     let pre_version = &versions[versions.len() - 2];
                     if version > *max_version {
-                        return Err(eyre!("schema version is too new: {} > {}", version, max_version))
+                        return Err(eyre!(
+                            "schema version is too new: {} > {}",
+                            version,
+                            max_version
+                        ));
                     }
                     if version < *pre_version {
-                        return Err(eyre!("schema version is too old: {} < {}", version, pre_version))
+                        return Err(eyre!(
+                            "schema version is too old: {} < {}",
+                            version,
+                            pre_version
+                        ));
                     }
-                    return Ok(())
+                    return Ok(());
                 }
             }
-            _ => ()
+            _ => (),
         }
-    };
+    }
 
     Err(eyre!("schema version not found"))
 }

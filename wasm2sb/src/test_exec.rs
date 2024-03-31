@@ -27,7 +27,11 @@ impl Importer for CustomImporter {
             println!("call __wasm_sb_bindgen_u64_split: {}", val);
             stack.push((val & 0xffff_ffff) as i32);
             stack.push((val >> 32) as i32);
-            println!("call __wasm_sb_bindgen_u64_split: {} {}", val & 0xffff_ffff, val >> 32);
+            println!(
+                "call __wasm_sb_bindgen_u64_split: {} {}",
+                val & 0xffff_ffff,
+                val >> 32
+            );
         }
 
         Ok(())
@@ -47,7 +51,8 @@ pub fn test_exec() -> Result<()> {
 
     let importer = CustomImporter;
 
-    let mut runtime = wain_exec::Runtime::instantiate(&module, importer).map_err(|e| eyre::eyre!("{:?}", e.to_string()))?;
+    let mut runtime = wain_exec::Runtime::instantiate(&module, importer)
+        .map_err(|e| eyre::eyre!("{:?}", e.to_string()))?;
     match runtime.invoke("nya_sama", &[wain_exec::Value::I32(1000200)]) {
         Ok(k) => {
             if let Some(k) = k {
@@ -64,33 +69,45 @@ pub fn test_exec() -> Result<()> {
         Err(e) => return Err(eyre::eyre!("{:?}", e.to_string())),
     }
 
-    println!("memory: {:?}", runtime.memory().data()[1000200..1000204].to_vec());
-    println!("memory: {:?}", runtime.memory().data()[1000204..1000208].to_vec());
-    println!("memory: {:?}", runtime.memory().data()[1000208..1000212].to_vec());
-    println!("memory: {:?}", runtime.memory().data()[1000212..1000216].to_vec());
+    println!(
+        "memory: {:?}",
+        runtime.memory().data()[1000200..1000204].to_vec()
+    );
+    println!(
+        "memory: {:?}",
+        runtime.memory().data()[1000204..1000208].to_vec()
+    );
+    println!(
+        "memory: {:?}",
+        runtime.memory().data()[1000208..1000212].to_vec()
+    );
+    println!(
+        "memory: {:?}",
+        runtime.memory().data()[1000212..1000216].to_vec()
+    );
     println!("global: {:?}", runtime.module().globals[0]);
     let ret_num = runtime.memory().data()[1000200..1000216].to_vec();
     println!("ret_num: {:?}", ret_num);
-    println!("num: {}", f64::from_le_bytes([
-        ret_num[0],
-        ret_num[1],
-        ret_num[2],
-        ret_num[3],
-        ret_num[4],
-        ret_num[5],
-        ret_num[6],
-        ret_num[7],
-    ]));
-    println!("num: {}", f64::from_le_bytes([
-        ret_num[8],
-        ret_num[9],
-        ret_num[10],
-        ret_num[11],
-        ret_num[12],
-        ret_num[13],
-        ret_num[14],
-        ret_num[15],
-    ]));
+    println!(
+        "num: {}",
+        f64::from_le_bytes([
+            ret_num[0], ret_num[1], ret_num[2], ret_num[3], ret_num[4], ret_num[5], ret_num[6],
+            ret_num[7],
+        ])
+    );
+    println!(
+        "num: {}",
+        f64::from_le_bytes([
+            ret_num[8],
+            ret_num[9],
+            ret_num[10],
+            ret_num[11],
+            ret_num[12],
+            ret_num[13],
+            ret_num[14],
+            ret_num[15],
+        ])
+    );
 
     // memoryの0でない場所を探して表示
     let mut index = 0;
@@ -119,7 +136,7 @@ pub fn test_exec() -> Result<()> {
                 Ok(s) => println!("{}..{}: {}", first, index, s),
                 Err(_) => {
                     println!("{}..{}: {:?}", first, index, str)
-                },
+                }
             }
 
             // if first % 4 != 0 {
@@ -138,7 +155,7 @@ pub fn test_exec() -> Result<()> {
         } else {
             index += 1;
         }
-    };
+    }
 
     println!("count: {}", count);
 

@@ -1,4 +1,7 @@
-use std::{collections::HashMap, sync::Arc};
+use std::{
+    collections::HashMap,
+    sync::{atomic::AtomicUsize, Arc},
+};
 
 use async_zip::ZipEntryBuilder;
 use futures::{io::Cursor, AsyncReadExt};
@@ -152,6 +155,14 @@ impl ProjectZip {
         self.y += y;
     }
 
+    pub fn get_target_context(&self) -> TargetContextGuard {
+        self.target_context.get_target_context()
+    }
+
+    pub fn target_context_mut(&mut self) -> &mut TargetContextWrapper {
+        &mut self.target_context
+    }
+
     pub fn zip(&self) -> Result<Vec<u8>> {
         let json = serde_json::to_string(&*self.project.read()).wrap_err(
             "failed to serialize project to json, this is a bug, please report it to the developers",
@@ -251,7 +262,7 @@ pub struct TargetContextWrapper {
     this_sprite_vars: HashMap<String, Uid>,
     this_sprite_lists: HashMap<String, Uid>,
     all_broadcasts: HashMap<String, Uid>,
-    pub target_context: Vec<Box<TargetContext<'static>>>,
+    atomic_counter: Arc<AtomicUsize>,
 }
 
 impl TargetContextWrapper {
@@ -268,11 +279,11 @@ impl TargetContextWrapper {
             this_sprite_vars,
             this_sprite_lists,
             all_broadcasts,
-            target_context: Vec::new(),
+            atomic_counter: Arc::new(AtomicUsize::new(0)),
         }
     }
 
-    pub fn get_target_context(&mut self) -> &'static mut TargetContext<'static> {
+    pub fn get_target_context(&self) -> TargetContextGuard {
         let target_context: &'static mut TargetContext<'static> =
             Box::leak(Box::new(TargetContext {
                 global_vars: Box::leak(Box::new(self.global_vars.clone())),
@@ -282,39 +293,71 @@ impl TargetContextWrapper {
                 all_broadcasts: Box::leak(Box::new(self.all_broadcasts.clone())),
             }));
 
-        let box_target_ctx = unsafe { Box::from_raw(target_context) };
+        self.atomic_counter
+            .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
 
-        self.target_context.push(box_target_ctx);
-
-        return target_context;
-    }
-
-    pub fn drop_target_context_all(&mut self) {
-        self.target_context.clear();
+        return TargetContextGuard {
+            target_context,
+            atomic_counter: self.atomic_counter.clone(),
+        };
     }
 
     pub fn get_mut_global_vars(&mut self) -> &mut HashMap<String, Uid> {
-        self.drop_target_context_all();
+        if self
+            .atomic_counter
+            .load(std::sync::atomic::Ordering::SeqCst)
+            > 0
+        {
+            panic!("cannot get mutable reference to global_vars while target_context is in use");
+        }
         &mut self.global_vars
     }
 
     pub fn get_mut_global_lists(&mut self) -> &mut HashMap<String, Uid> {
-        self.drop_target_context_all();
+        if self
+            .atomic_counter
+            .load(std::sync::atomic::Ordering::SeqCst)
+            > 0
+        {
+            panic!("cannot get mutable reference to global_lists while target_context is in use");
+        }
         &mut self.global_lists
     }
 
     pub fn get_mut_this_sprite_vars(&mut self) -> &mut HashMap<String, Uid> {
-        self.drop_target_context_all();
+        if self
+            .atomic_counter
+            .load(std::sync::atomic::Ordering::SeqCst)
+            > 0
+        {
+            panic!(
+                "cannot get mutable reference to this_sprite_vars while target_context is in use"
+            );
+        }
         &mut self.this_sprite_vars
     }
 
     pub fn get_mut_this_sprite_lists(&mut self) -> &mut HashMap<String, Uid> {
-        self.drop_target_context_all();
+        if self
+            .atomic_counter
+            .load(std::sync::atomic::Ordering::SeqCst)
+            > 0
+        {
+            panic!(
+                "cannot get mutable reference to this_sprite_lists while target_context is in use"
+            );
+        }
         &mut self.this_sprite_lists
     }
 
     pub fn get_mut_all_broadcasts(&mut self) -> &mut HashMap<String, Uid> {
-        self.drop_target_context_all();
+        if self
+            .atomic_counter
+            .load(std::sync::atomic::Ordering::SeqCst)
+            > 0
+        {
+            panic!("cannot get mutable reference to all_broadcasts while target_context is in use");
+        }
         &mut self.all_broadcasts
     }
 
@@ -374,13 +417,32 @@ impl std::fmt::Debug for TargetContextWrapper {
     }
 }
 
-pub struct TargetContextWrapperGuard<'a> {
-    target_context: &'static mut TargetContextWrapper,
-    _marker: std::marker::PhantomData<&'a ()>,
+pub struct TargetContextGuard {
+    target_context: &'static mut TargetContext<'static>,
+    atomic_counter: Arc<AtomicUsize>,
 }
 
-// impl<'a> TargetContextWrapperGuard<'a> {
-//     pub fn deref(&self) -> &'static TargetContext<'static> {
-//         self.target_context.get_target_context()
-//     }
-// }
+impl std::ops::Deref for TargetContextGuard {
+    type Target = TargetContext<'static>;
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        self.target_context
+    }
+}
+
+impl TargetContextGuard {
+    pub fn deref_mut(&mut self) -> &'static mut TargetContext {
+        self.target_context
+    }
+}
+
+impl std::ops::Drop for TargetContextGuard {
+    fn drop(&mut self) {
+        unsafe {
+            std::mem::drop(Box::from_raw(self.target_context));
+            self.atomic_counter
+                .fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
+        }
+    }
+}

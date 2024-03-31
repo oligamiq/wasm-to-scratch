@@ -12,12 +12,14 @@ use sb_sbity::{
     value::Value,
 };
 
-use crate::scratch::block::custom_block_stack_builder::CustomStackBuilder;
+use crate::scratch::block::{
+    custom_block_func::CustomBlockInputType, custom_block_stack_builder::CustomStackBuilder,
+};
 
 use super::unicode::all_unicode;
 
 pub fn to_utf8_generator() -> (StringHashMap<Block>, ListBuilder) {
-    let stack_builder = CustomStackBuilder::new(vec![], true);
+    let stack_builder = CustomStackBuilder::new(vec![CustomBlockInputType::Text("a".into())], true);
     // let block_input_builder = BlockInputBuilder::value(BlockInputValue::String { value: Value::Text(all_unicode()) });
     let block_input_builder = BlockInputBuilder::value(BlockInputValue::String {
         value: Value::Text(String::from("t")),
