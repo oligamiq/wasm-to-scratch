@@ -7,9 +7,9 @@ use async_zip::ZipEntryBuilder;
 use futures::{io::Cursor, AsyncReadExt};
 use futures_lite as futures;
 use log::warn;
-use parking_lot::RwLock;
+use parking_lot::{Mutex, RwLock};
 use sb_itchy::{
-    build_context::{GlobalVarListContext, TargetContext},
+    build_context::{CustomFuncTy, GlobalVarListContext, TargetContext},
     target::SpriteBuilder,
     uid::Uid,
 };
@@ -263,6 +263,7 @@ pub struct TargetContextWrapper {
     this_sprite_lists: HashMap<String, Uid>,
     all_broadcasts: HashMap<String, Uid>,
     atomic_counter: Arc<AtomicUsize>,
+    custom_funcs: Arc<Mutex<HashMap<String, CustomFuncTy>>>,
 }
 
 impl TargetContextWrapper {
@@ -280,6 +281,7 @@ impl TargetContextWrapper {
             this_sprite_lists,
             all_broadcasts,
             atomic_counter: Arc::new(AtomicUsize::new(0)),
+            custom_funcs: Arc::new(Mutex::new(HashMap::new())),
         }
     }
 
@@ -291,6 +293,7 @@ impl TargetContextWrapper {
                 this_sprite_vars: Box::leak(Box::new(self.this_sprite_vars.clone())),
                 this_sprite_lists: Box::leak(Box::new(self.this_sprite_lists.clone())),
                 all_broadcasts: Box::leak(Box::new(self.all_broadcasts.clone())),
+                custom_funcs: self.custom_funcs.clone(),
             }));
 
         self.atomic_counter

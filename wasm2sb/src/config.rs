@@ -12,7 +12,8 @@ use path_slash::PathBufExt as _;
 
 /// Command line arguments
 #[derive(Parser, Debug)]
-#[clap(name = "wasm2sb", author, version, about, long_about = None, arg_required_else_help(true))]
+// #[clap(name = "wasm2sb", author, version, about, long_about = None, arg_required_else_help(true))]
+#[clap(author, version, about, long_about = None, arg_required_else_help(true))]
 pub struct CommandLineArgs {
     #[command(subcommand)]
     command: SubCommands,
@@ -59,6 +60,10 @@ pub struct Arg {
     /// verbose mode
     #[arg(short, long, default_value = "false")]
     pub verbose: bool,
+
+    /// input file
+    #[arg(short, long)]
+    pub input: Option<PathBuf>,
 }
 
 impl CommandLineArgs {

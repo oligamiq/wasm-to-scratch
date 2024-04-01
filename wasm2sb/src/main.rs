@@ -77,7 +77,7 @@ fn main() -> Result<()> {
     let mut ctx = GenCtx::new();
     ctx.functions_count = module.funcs.iter().count() + module.exports.iter().count();
 
-    let (utf8_block, _) = scratch::block::to_utf8::generator::to_utf8_generator();
+    let utf8_block = scratch::block::to_utf8::generator::to_utf8_generator(project.target_context_mut());
 
     for function in module.funcs.iter() {
         // println!("{:?}", function.idx);

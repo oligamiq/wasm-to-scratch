@@ -2,9 +2,9 @@ use std::collections::HashMap;
 
 use sb_itchy::{
     block::{BlockFieldBuilder, BlockInputBuilder},
-    blocks::set_var_to,
+    blocks::{define_custom_block, set_var_to},
     build_context::TargetContext,
-    data::ListBuilder,
+    data::ListBuilder, func::CustomFuncInputType, uid::Uid,
 };
 use sb_sbity::{
     block::{Block, BlockInputValue},
@@ -12,14 +12,20 @@ use sb_sbity::{
     value::Value,
 };
 
-use crate::scratch::block::{
-    custom_block_func::CustomBlockInputType, custom_block_stack_builder::CustomStackBuilder,
-};
+use crate::scratch::sb3::TargetContextWrapper;
 
 use super::unicode::all_unicode;
 
-pub fn to_utf8_generator() -> (StringHashMap<Block>, ListBuilder) {
-    let stack_builder = CustomStackBuilder::new(vec![CustomBlockInputType::Text("a".into())], true);
+pub fn to_utf8_generator_list() -> ListBuilder {
+    let list_builder_values = all_unicode()
+        .chars()
+        .map(|c| Value::Text(c.to_string()))
+        .collect();
+    ListBuilder::new(list_builder_values)
+}
+
+pub fn to_utf8_generator(target_ctx: &TargetContextWrapper) -> StringHashMap<Block> {
+    let stack_builder = define_custom_block(vec![CustomFuncInputType::Text("a".into())], true);
     // let block_input_builder = BlockInputBuilder::value(BlockInputValue::String { value: Value::Text(all_unicode()) });
     let block_input_builder = BlockInputBuilder::value(BlockInputValue::String {
         value: Value::Text(String::from("t")),
@@ -30,21 +36,10 @@ pub fn to_utf8_generator() -> (StringHashMap<Block>, ListBuilder) {
         block_input_builder,
     ));
 
-    let list_builder_values = all_unicode()
-        .chars()
-        .map(|c| Value::Text(c.to_string()))
-        .collect();
-    let list_builder = ListBuilder::new(list_builder_values);
-
     let blocks = stack_builder.build(
+        &Uid::generate(),
         &mut HashMap::default(),
-        &mut TargetContext {
-            global_vars: &HashMap::default(),
-            global_lists: &HashMap::default(),
-            this_sprite_vars: &HashMap::default(),
-            this_sprite_lists: &HashMap::default(),
-            all_broadcasts: &HashMap::default(),
-        },
+        &*target_ctx.get_target_context(),
     );
 
     let blocks = blocks
@@ -52,5 +47,5 @@ pub fn to_utf8_generator() -> (StringHashMap<Block>, ListBuilder) {
         .map(|(k, v)| (k.into_inner(), v))
         .collect();
 
-    (StringHashMap(blocks), list_builder)
+    StringHashMap(blocks)
 }

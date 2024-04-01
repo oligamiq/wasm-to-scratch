@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
-use crate::{scratch::sb3::ProjectZip, util::wrap_by_len, GenCtx};
+use crate::{scratch::sb3::{ProjectZip, TargetContextWrapper}, util::wrap_by_len, GenCtx};
 
 use sb_itchy::{
     block::{BlockFieldBuilder, BlockInputBuilder},
     blocks::*,
-    build_context::TargetContext,
+    build_context::TargetContext, func::CustomFuncInputType, stack::StackBuilder, uid::Uid,
 };
 
 use sb_sbity::{
@@ -14,9 +14,6 @@ use sb_sbity::{
 };
 use walrus::{Function, Type, ValType};
 use crate::pre_name::PRE_FUNC_NAME;
-use super::{
-    custom_block_func::CustomBlockInputType, custom_block_stack_builder::CustomStackBuilder,
-};
 
 // https://developer.mozilla.org/ja/docs/WebAssembly/Understanding_the_text_format
 
@@ -36,19 +33,19 @@ impl ProjectZip {
             .flat_map(|(k, f)| {
                 let mut types = vec![];
                 types.push(match f {
-                    ValType::I32 => CustomBlockInputType::StringOrNumber(format!(
+                    ValType::I32 => CustomFuncInputType::StringOrNumber(format!(
                         "{}_i32",
                         wrap_by_len(k, params_len)
                     )),
-                    ValType::I64 => CustomBlockInputType::StringOrNumber(format!(
+                    ValType::I64 => CustomFuncInputType::StringOrNumber(format!(
                         "{}_i64",
                         wrap_by_len(k, params_len)
                     )),
-                    ValType::F32 => CustomBlockInputType::StringOrNumber(format!(
+                    ValType::F32 => CustomFuncInputType::StringOrNumber(format!(
                         "{}_f32",
                         wrap_by_len(k, params_len)
                     )),
-                    ValType::F64 => CustomBlockInputType::StringOrNumber(format!(
+                    ValType::F64 => CustomFuncInputType::StringOrNumber(format!(
                         "{}_f64",
                         wrap_by_len(k, params_len)
                     )),
@@ -58,10 +55,10 @@ impl ProjectZip {
                 });
                 types
             })
-            .collect::<Vec<CustomBlockInputType>>();
+            .collect::<Vec<CustomFuncInputType>>();
 
-        func_type.insert(0, CustomBlockInputType::Text(name.clone()));
-        let mut inner_builder = CustomStackBuilder::new(func_type, true);
+        func_type.insert(0, CustomFuncInputType::Text(name.clone()));
+        let mut inner_builder = define_custom_block(func_type, true);
         inner_builder.set_top_block_position(self.get_x() as f64, self.get_y() as f64);
         ctx.update_func_block();
         self.update_y(200);
@@ -75,14 +72,9 @@ impl ProjectZip {
         ));
 
         let blocks = inner_builder.build(
+            &Uid::generate(),
             &mut HashMap::default(),
-            &mut TargetContext {
-                global_vars: &HashMap::default(),
-                global_lists: &HashMap::default(),
-                this_sprite_vars: &HashMap::default(),
-                this_sprite_lists: &HashMap::default(),
-                all_broadcasts: &HashMap::default(),
-            },
+            &*self.get_target_context(),
         );
 
         let blocks = blocks

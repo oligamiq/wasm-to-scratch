@@ -3,14 +3,13 @@
 use std::collections::HashMap;
 
 use eyre::Result;
+use sb_itchy::func::CustomFuncInputType;
 use sb_itchy::uid::Uid;
 use sb_sbity::{block::Block, string_hashmap::StringHashMap};
+use sb_itchy::blocks::*;
 
 use crate::scratch::sb3::ProjectZip;
 use crate::pre_name::PRE_FUNC_NAME;
-use super::{
-    custom_block_func::CustomBlockInputType, custom_block_stack_builder::CustomStackBuilder,
-};
 
 pub fn generate_buddy_block(
     ctx: &ProjectZip,
@@ -36,12 +35,16 @@ fn generate_buddy_block_init(
     block_size: usize,
     pre_name: &str,
 ) -> HashMap<Uid, Block> {
-    let custom_stack_builder = CustomStackBuilder::new(
-        vec![CustomBlockInputType::Text(format!(
+    let custom_stack_builder = define_custom_block(
+        vec![CustomFuncInputType::Text(format!(
             "{pre_name}init",
         ))],
         true,
     );
+    // custom_stack_builder.next(
 
-    custom_stack_builder.build(&mut HashMap::default(), &*ctx.get_target_context())
+    // );
+
+
+    custom_stack_builder.build(&Uid::generate(), &mut HashMap::default(), &*ctx.get_target_context())
 }
