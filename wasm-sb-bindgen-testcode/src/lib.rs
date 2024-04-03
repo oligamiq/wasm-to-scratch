@@ -1,6 +1,10 @@
 extern crate wee_alloc;
 
-use std::{cell::OnceCell, fmt::format, sync::{atomic::AtomicBool, OnceLock}};
+use std::{
+    cell::OnceCell,
+    fmt::format,
+    sync::{atomic::AtomicBool, OnceLock},
+};
 
 use wasm_sb_bindgen::{wasm_sb_bindgen, SbError};
 
@@ -60,7 +64,10 @@ static STR: AtomicBool = AtomicBool::new(false);
 #[wasm_sb_bindgen]
 pub fn nya_sama() -> String {
     STR.store(true, std::sync::atomic::Ordering::SeqCst);
-    format!("nya_sama2: {}", STR.load(std::sync::atomic::Ordering::SeqCst))
+    format!(
+        "nya_sama2: {}",
+        STR.load(std::sync::atomic::Ordering::SeqCst)
+    )
 }
 
 #[wasm_sb_bindgen]

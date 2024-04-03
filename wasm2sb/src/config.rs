@@ -103,16 +103,23 @@ impl CommandLineArgs {
                         .spawn()
                         .unwrap();
 
-                    let reader = std::io::BufReader::new(command.stdout.take().unwrap());
-
                     println!("{}{:?}", "Building package: ".green(), package);
+
+                    let reader = std::io::BufReader::new(command.stdout.take().unwrap());
 
                     for message in cargo_metadata::Message::parse_stream(reader) {
                         match message.unwrap() {
                             Message::CompilerMessage(_) => {}
                             Message::CompilerArtifact(_) => {}
                             Message::BuildScriptExecuted(_) => {}
-                            Message::BuildFinished(_) => {}
+                            Message::BuildFinished(f) => {
+                                if f.success {
+                                    println!("{}", "Build succeeded".green());
+                                } else {
+                                    println!("{}", "Build failed".red());
+                                    return Err(eyre::eyre!("Build failed"));
+                                }
+                            }
                             _ => (), // Unknown message
                         }
                     }

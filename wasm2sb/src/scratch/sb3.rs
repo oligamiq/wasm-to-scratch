@@ -7,9 +7,10 @@ use async_zip::ZipEntryBuilder;
 use futures::{io::Cursor, AsyncReadExt};
 use futures_lite as futures;
 use log::warn;
-use parking_lot::{Mutex, RwLock};
+use parking_lot::RwLock;
 use sb_itchy::{
-    build_context::{CustomFuncTy, GlobalVarListContext, TargetContext},
+    build_context::{GlobalVarListContext, TargetContext},
+    custom_block::{CustomBlockInputType, CustomBlockTy},
     target::SpriteBuilder,
     uid::Uid,
 };
@@ -143,6 +144,13 @@ impl ProjectZip {
         })
     }
 
+    pub fn define_custom_block(&mut self, args: Vec<CustomBlockInputType>, warp: bool) {
+        let custom_func = CustomBlockTy::new(args, warp);
+        self.target_context
+            .get_mut_custom_blocks()
+            .push(custom_func);
+    }
+
     pub fn get_x(&self) -> i32 {
         self.x
     }
@@ -262,8 +270,8 @@ pub struct TargetContextWrapper {
     this_sprite_vars: HashMap<String, Uid>,
     this_sprite_lists: HashMap<String, Uid>,
     all_broadcasts: HashMap<String, Uid>,
+    custom_blocks: Vec<CustomBlockTy>,
     atomic_counter: Arc<AtomicUsize>,
-    custom_funcs: Arc<Mutex<HashMap<String, CustomFuncTy>>>,
 }
 
 impl TargetContextWrapper {
@@ -273,6 +281,7 @@ impl TargetContextWrapper {
         this_sprite_vars: HashMap<String, Uid>,
         this_sprite_lists: HashMap<String, Uid>,
         all_broadcasts: HashMap<String, Uid>,
+        custom_blocks: Vec<CustomBlockTy>,
     ) -> Self {
         Self {
             global_vars,
@@ -280,8 +289,8 @@ impl TargetContextWrapper {
             this_sprite_vars,
             this_sprite_lists,
             all_broadcasts,
+            custom_blocks,
             atomic_counter: Arc::new(AtomicUsize::new(0)),
-            custom_funcs: Arc::new(Mutex::new(HashMap::new())),
         }
     }
 
@@ -293,7 +302,7 @@ impl TargetContextWrapper {
                 this_sprite_vars: Box::leak(Box::new(self.this_sprite_vars.clone())),
                 this_sprite_lists: Box::leak(Box::new(self.this_sprite_lists.clone())),
                 all_broadcasts: Box::leak(Box::new(self.all_broadcasts.clone())),
-                custom_funcs: self.custom_funcs.clone(),
+                custom_blocks: Box::leak(Box::new(self.custom_blocks.clone())),
             }));
 
         self.atomic_counter
@@ -364,6 +373,17 @@ impl TargetContextWrapper {
         &mut self.all_broadcasts
     }
 
+    pub fn get_mut_custom_blocks(&mut self) -> &mut Vec<CustomBlockTy> {
+        if self
+            .atomic_counter
+            .load(std::sync::atomic::Ordering::SeqCst)
+            > 0
+        {
+            panic!("cannot get mutable reference to custom_blocks while target_context is in use");
+        }
+        &mut self.custom_blocks
+    }
+
     pub fn new_from_sb(project: &Project) -> Self {
         let mut global_vars = HashMap::new();
         let mut global_lists = HashMap::new();
@@ -404,7 +424,13 @@ impl TargetContextWrapper {
             this_sprite_vars,
             this_sprite_lists,
             all_broadcasts,
+            vec![],
         )
+    }
+
+    pub fn define_custom_block(&mut self, args: Vec<CustomBlockInputType>, warp: bool) {
+        let custom_func = CustomBlockTy::new(args, warp);
+        self.custom_blocks.push(custom_func);
     }
 }
 

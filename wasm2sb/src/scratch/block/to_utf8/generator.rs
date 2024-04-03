@@ -4,7 +4,9 @@ use sb_itchy::{
     block::{BlockFieldBuilder, BlockInputBuilder},
     blocks::{define_custom_block, set_var_to},
     build_context::TargetContext,
-    data::ListBuilder, func::CustomFuncInputType, uid::Uid,
+    custom_block::{CustomBlockInputType, CustomBlockTy},
+    data::ListBuilder,
+    uid::Uid,
 };
 use sb_sbity::{
     block::{Block, BlockInputValue},
@@ -24,8 +26,9 @@ pub fn to_utf8_generator_list() -> ListBuilder {
     ListBuilder::new(list_builder_values)
 }
 
-pub fn to_utf8_generator(target_ctx: &TargetContextWrapper) -> StringHashMap<Block> {
-    let stack_builder = define_custom_block(vec![CustomFuncInputType::Text("a".into())], true);
+pub fn to_utf8_generator(target_ctx: &mut TargetContextWrapper) -> StringHashMap<Block> {
+    target_ctx.define_custom_block(vec![CustomBlockInputType::Text("to_utf8".into())], true);
+    let stack_builder = define_custom_block("to_utf8");
     // let block_input_builder = BlockInputBuilder::value(BlockInputValue::String { value: Value::Text(all_unicode()) });
     let block_input_builder = BlockInputBuilder::value(BlockInputValue::String {
         value: Value::Text(String::from("t")),
