@@ -829,7 +829,7 @@ checksum = "e86697c916019a8588c99b5fac3cead74ec0b4b819707a682fd4d23fa0ce1ba1"
 [[package]]
 name = "sb-itchy"
 version = "0.2.0"
-source = "git+https://github.com/oligamiq/sb-itchy#bd9d26de3175c60436479e98b3c11b69c096dc8a"
+source = "git+https://github.com/oligamiq/sb-itchy#837b23491375b76fa0ec36aab6fd8e74f1a65296"
 dependencies = [
  "getrandom",
  "md5",

@@ -7,13 +7,12 @@ use async_zip::ZipEntryBuilder;
 use futures::{io::Cursor, AsyncReadExt};
 use futures_lite as futures;
 use log::warn;
-use parking_lot::RwLock;
 use sb_itchy::{
     build_context::{GlobalVarListContext, TargetContext},
     custom_block::{CustomBlockInputType, CustomBlockTy},
     data::ListBuilder,
     stack::StackBuilder,
-    target::{self, SpriteBuilder, TargetBuilder},
+    target::{SpriteBuilder, TargetBuilder},
     uid::Uid,
 };
 use sb_sbity::{
@@ -32,7 +31,7 @@ pub type CommentMap = HashMap<Uid, Comment>;
 #[derive(Debug)]
 pub struct ProjectZip {
     path: String,
-    pub project: Arc<RwLock<Project>>,
+    pub project: Project,
     buff: Vec<u8>,
     x: i32,
     y: i32,
@@ -128,7 +127,7 @@ impl ProjectZip {
         Ok(Self {
             path,
             target_context: TargetContextWrapper::new_from_sb(&project),
-            project: Arc::new(RwLock::new(project)),
+            project: project,
             buff: bytes,
             y: top_y as i32,
             x: (left_x - 2000) as i32,
@@ -183,9 +182,7 @@ impl ProjectZip {
 
     pub fn build(&mut self) {
         let mut sprite = None;
-        let internal_project = self.project.clone();
-        let mut internal_project = internal_project.write();
-        for target in internal_project.targets.iter_mut() {
+        for target in self.project.targets.iter_mut() {
             match target {
                 SpriteOrStage::Sprite(sprite_impl) => {
                     sprite = Some(sprite_impl);
@@ -220,7 +217,7 @@ impl ProjectZip {
     }
 
     pub fn zip(&self) -> Result<Vec<u8>> {
-        let json = serde_json::to_string(&*self.project.read()).wrap_err(
+        let json = serde_json::to_string(&self.project).wrap_err(
             "failed to serialize project to json, this is a bug, please report it to the developers",
         )?;
 
@@ -542,12 +539,12 @@ impl std::ops::Drop for TargetContextGuard {
                 custom_blocks,
             } = self.target_context;
 
-            std::mem::drop(Box::from_raw(global_vars));
-            std::mem::drop(Box::from_raw(global_lists));
-            std::mem::drop(Box::from_raw(this_sprite_vars));
-            std::mem::drop(Box::from_raw(this_sprite_lists));
-            std::mem::drop(Box::from_raw(all_broadcasts));
-            std::mem::drop(Box::from_raw(custom_blocks));
+            // std::mem::drop(Box::from_raw(global_vars));
+            // std::mem::drop(Box::from_raw(global_lists));
+            // std::mem::drop(Box::from_raw(this_sprite_vars));
+            // std::mem::drop(Box::from_raw(this_sprite_lists));
+            // std::mem::drop(Box::from_raw(all_broadcasts));
+            // std::mem::drop(Box::from_raw(custom_blocks));
 
             std::mem::drop(target_context);
             self.atomic_counter

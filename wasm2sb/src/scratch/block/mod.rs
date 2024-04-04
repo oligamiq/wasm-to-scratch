@@ -38,4 +38,24 @@ pub mod block_generator_into {
             })
         }
     }
+
+    impl BlockGeneratorInto<Bib> for bool {
+        fn to(self) -> Bib {
+            Bib::value(Biv::String {
+                value: Value::Text(self.to_string().into()),
+            })
+        }
+    }
+
+    impl BlockGeneratorInto<Bib> for Bib {
+        fn to(self) -> Bib {
+            self
+        }
+    }
+
+    impl BlockGeneratorInto<Bfb> for &str {
+        fn to(self) -> Bfb {
+            Bfb::new(self.into())
+        }
+    }
 }
