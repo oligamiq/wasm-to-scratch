@@ -31,10 +31,10 @@ pub fn all_unicode_upper_letter_case() -> Vec<((u32, u32), i64, String)> {
             let lower = lower.chars().next().unwrap();
             let diff_c = c as u32 as i64 - lower as u32 as i64;
             if diff_c != 0 {
-                let upper = lower.to_uppercase().to_string();
-                if upper.chars().count() == 1 && upper.chars().next().unwrap() != c {
-                    println!("alert: {} -> {} -> {}", c, lower, upper.chars().next().unwrap());
-                }
+                // let upper = lower.to_uppercase().to_string();
+                // if upper.chars().count() == 1 && upper.chars().next().unwrap() != c {
+                //     println!("alert: {} -> {} -> {}", c, lower, upper.chars().next().unwrap());
+                // }
                 return Some((lower as u32, lower, c));
             } else {
                 return None;
@@ -55,7 +55,7 @@ pub fn all_unicode_upper_letter_case() -> Vec<((u32, u32), i64, String)> {
             diff = Some(diff_c);
             first = i;
         }
-        succession.push(c);
+        succession.push(upper);
         kept_i = i;
     }
     s

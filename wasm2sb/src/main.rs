@@ -108,6 +108,10 @@ fn main() -> Result<()> {
     let stack_builders = generate_buddy_block(&mut project, 16, 4)?;
     project.add_stack_builders(stack_builders);
 
+    println!("{}", "project building!".green().bold());
+
+    project.build();
+
     println!("{}", "project generated successfully!".green().bold());
     println!("{}", "zipping project...".green().bold());
 
