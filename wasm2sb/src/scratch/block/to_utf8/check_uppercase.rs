@@ -10,21 +10,29 @@ pub fn check_uppercase_func_generator(ctx: &mut ProjectZip) {
     for unicode in &unicode {
         println!("{:?}", unicode);
     }
+    println!("{:?}", unicode.len());
 
     let name = format!("{PRE_UNICODE}check_uppercase");
 
-    ctx.add_list_builder(format!("{PRE_UNICODE}tmp"), ListBuilder::new(vec![
-        Value::Number(Number::Int(0)),
-    ]));
-    ctx.add_list_builder(format!("{PRE_UNICODE}uppercase_data"), ListBuilder::new({
-        unicode.iter().flat_map(|((first, last), diff, _)| {
-            vec![
-                Value::Number(Number::Int ( *first as i64 - 1 )),
-                Value::Number(Number::Int ( *last as i64 + 1 )),
-                Value::Number(Number::Int ( *diff as i64 )),
-            ]
-        }).collect::<Vec<Value>>()
-    }));
+    ctx.add_list_builder(
+        format!("{PRE_UNICODE}tmp"),
+        ListBuilder::new(vec![Value::Number(Number::Int(0))]),
+    );
+    ctx.add_list_builder(
+        format!("{PRE_UNICODE}uppercase_data"),
+        ListBuilder::new({
+            unicode
+                .iter()
+                .flat_map(|((first, last), diff, _)| {
+                    vec![
+                        Value::Number(Number::Int(*first as i64 - 1)),
+                        Value::Number(Number::Int(*last as i64 + 1)),
+                        Value::Number(Number::Int(*diff as i64)),
+                    ]
+                })
+                .collect::<Vec<Value>>()
+        }),
+    );
 
     ctx.define_custom_block(
         vec![
@@ -36,6 +44,4 @@ pub fn check_uppercase_func_generator(ctx: &mut ProjectZip) {
     );
 
     let mut check_uppercase = define_custom_block(name);
-
-
 }

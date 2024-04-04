@@ -17,7 +17,10 @@ use sb_sbity::{
 
 use crate::scratch::sb3::{ProjectZip, TargetContextWrapper};
 
-use super::{check_uppercase::check_uppercase_func_generator, unicode::{all_unicode, all_unicode_upper_letter_case}};
+use super::{
+    check_uppercase::check_uppercase_func_generator,
+    unicode::{all_unicode, all_unicode_upper_letter_case},
+};
 
 type BiB = BlockInputBuilder;
 type BiV = BlockInputValue;
