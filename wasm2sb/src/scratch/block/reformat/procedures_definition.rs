@@ -30,7 +30,7 @@ impl ProjectZip {
         _function: &Function,
         func_type: &Type,
         ctx: &mut GenCtx,
-    ) -> StringHashMap<Block> {
+    ) -> Vec<StackBuilder> {
         let params_len = func_type.params().len();
         let name = format!("{PRE_FUNC_NAME}{}", ctx.gen_pre_name());
         let mut func_type = func_type
@@ -66,10 +66,9 @@ impl ProjectZip {
 
         func_type.insert(0, CustomBlockInputType::Text(name.clone()));
         self.define_custom_block(func_type, true);
+
         let mut inner_builder = define_custom_block(name);
-        inner_builder.set_top_block_position(self.get_x() as f64, self.get_y() as f64);
         ctx.update_func_block();
-        self.update_y(200);
 
         inner_builder = inner_builder.next(replace_in_list(
             BlockFieldBuilder::new("__wasm_function_stack".into()),
@@ -79,17 +78,6 @@ impl ProjectZip {
             }),
         ));
 
-        let blocks = inner_builder.build(
-            &Uid::generate(),
-            &mut HashMap::default(),
-            &*self.get_target_context(),
-        );
-
-        let blocks = blocks
-            .into_iter()
-            .map(|(k, v)| (k.into_inner(), v))
-            .collect();
-
-        StringHashMap(blocks)
+        vec![inner_builder]
     }
 }

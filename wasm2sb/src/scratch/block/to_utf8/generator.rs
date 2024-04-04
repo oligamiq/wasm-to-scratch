@@ -6,6 +6,7 @@ use sb_itchy::{
     build_context::TargetContext,
     custom_block::{CustomBlockInputType, CustomBlockTy},
     data::ListBuilder,
+    stack::StackBuilder,
     uid::Uid,
 };
 use sb_sbity::{
@@ -14,41 +15,43 @@ use sb_sbity::{
     value::Value,
 };
 
-use crate::scratch::sb3::TargetContextWrapper;
+use crate::scratch::sb3::{ProjectZip, TargetContextWrapper};
 
-use super::unicode::all_unicode;
+use super::unicode::{all_unicode, all_unicode_upper_letter_case};
 
-pub fn to_utf8_generator_list() -> ListBuilder {
-    let list_builder_values = all_unicode()
-        .chars()
-        .map(|c| Value::Text(c.to_string()))
-        .collect();
-    ListBuilder::new(list_builder_values)
+type BiB = BlockInputBuilder;
+type BiV = BlockInputValue;
+
+pub fn to_utf8_generator_list(ctx: &mut ProjectZip) {
+    let all = all_unicode_upper_letter_case();
+    // let list_builder_values = all_unicode_upper_letter_case()
+    //     .chars()
+    //     .map(|c| Value::Text(c.to_string()))
+    // .collect::<Vec<_>>();
+    // let list_builder_values = Vec::new();
+    for all in &all {
+        println!("all: {:?}", all);
+    }
+    println!("len: {:?}", all.len());
 }
 
-pub fn to_utf8_generator(target_ctx: &mut TargetContextWrapper) -> StringHashMap<Block> {
-    target_ctx.define_custom_block(vec![CustomBlockInputType::Text("to_utf8".into())], true);
+pub fn to_utf8_generator(target_ctx: &mut ProjectZip) -> StackBuilder {
+    target_ctx.define_custom_block(
+        vec![
+            CustomBlockInputType::Text("to_utf8".into()),
+            CustomBlockInputType::StringOrNumber("str".into()),
+        ],
+        true,
+    );
+    to_utf8_generator_list(target_ctx);
     let stack_builder = define_custom_block("to_utf8");
-    // let block_input_builder = BlockInputBuilder::value(BlockInputValue::String { value: Value::Text(all_unicode()) });
-    let block_input_builder = BlockInputBuilder::value(BlockInputValue::String {
-        value: Value::Text(String::from("t")),
+    let block_input_builder = BiB::value(BiV::String {
+        value: String::from("t").into(),
     });
-    // println!("all_unicode: {}", all_unicode());
     let stack_builder = stack_builder.next(set_var_to(
         BlockFieldBuilder::new("a".into()),
         block_input_builder,
     ));
 
-    let blocks = stack_builder.build(
-        &Uid::generate(),
-        &mut HashMap::default(),
-        &*target_ctx.get_target_context(),
-    );
-
-    let blocks = blocks
-        .into_iter()
-        .map(|(k, v)| (k.into_inner(), v))
-        .collect();
-
-    StringHashMap(blocks)
+    stack_builder
 }

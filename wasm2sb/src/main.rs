@@ -37,24 +37,6 @@ fn main() -> Result<()> {
         CommandLineArgs::parse_and_check().wrap_err("failed to parse command line arguments")?;
 
     let mut project = test_project().unwrap();
-    let mut sprite = None;
-
-    let internal_project = project.project.clone();
-    let mut internal_project = internal_project.write();
-    for target in internal_project.targets.iter_mut() {
-        match target {
-            SpriteOrStage::Sprite(sprite_impl) => {
-                sprite = Some(sprite_impl);
-                break;
-            }
-            SpriteOrStage::Stage(stage_impl) => {
-                rewrite_list(&mut stage_impl.target.lists);
-            }
-        }
-    }
-
-    let mut sprite = sprite.unwrap();
-
     // println!("{:#?}", blocks);
 
     let data = std::fs::read(&path).wrap_err(format!("failed to read file: {:?}", path))?;
@@ -86,8 +68,8 @@ fn main() -> Result<()> {
     let mut ctx = GenCtx::new();
     ctx.functions_count = module.funcs.iter().count() + module.exports.iter().count();
 
-    let utf8_block =
-        scratch::block::to_utf8::generator::to_utf8_generator(project.target_context_mut());
+    let stack_builder = scratch::block::to_utf8::generator::to_utf8_generator(&mut project);
+    project.add_stack_builder(stack_builder);
 
     for function in module.funcs.iter() {
         // println!("{:?}", function.idx);
@@ -111,8 +93,8 @@ fn main() -> Result<()> {
             walrus::FunctionKind::Uninitialized(_) => todo!(),
         };
 
-        let block = project.generate_func_block(function, func_type, &mut ctx);
-        sprite.target.blocks.0.extend(block.0);
+        let stack_builders = project.generate_func_block(function, func_type, &mut ctx);
+        project.add_stack_builders(stack_builders);
 
         // println!("{}", serde_json::to_string(&blocks).unwrap());
 
@@ -123,65 +105,9 @@ fn main() -> Result<()> {
         // }
     }
 
-    sprite.target.blocks.0.extend(utf8_block.0);
+    let stack_builders = generate_buddy_block(&mut project, 16, 4)?;
+    project.add_stack_builders(stack_builders);
 
-    let blocks = generate_buddy_block(&mut project, 16, 4)?;
-    sprite.target.blocks.0.extend(blocks.0);
-
-    // let translater = translate_to(
-    //     // BlockInputBuilder::value(sb_sbity::block::BlockInputValue::String {
-    //     //     value: sb_sbity::value::Value::Text(String::from("hello world")),
-    //     // }),
-    //     BlockInputBuilder::stack(get_viewer_language()),
-    //     "ja",
-    // );
-    // let blocks = translater.build(
-    //     &Uid::generate(),
-    //     &mut std::collections::HashMap::default(),
-    //     &*project.get_target_context(),
-    // );
-    // sprite.target.blocks.0.extend(
-    //     blocks
-    //         .iter()
-    //         .map(|(i, b)| (i.clone().into_inner(), b.clone()))
-    //         .collect::<Vec<_>>(),
-    // );
-
-    // for function in module.functions() {
-    //     println!("{:?}", function);
-    //     break;
-    // }
-
-    {
-        let blocks = when_flag_clicked().next(call_custom_block::<_, String>(
-            "__wasm_internal_func_20",
-            HashMap::default(),
-        ));
-        let blocks = blocks.next(set_x(BlockInputBuilder::stack(custom_block_var_boolean(
-            "c",
-        ))));
-        let blocks = blocks.next(set_var_to(
-            BlockFieldBuilder::new("t".into()),
-            BlockInputBuilder::stack(custom_block_var_string_number("b")),
-        ));
-        let blocks = blocks.next(set_var_to(
-            BlockFieldBuilder::new("k".into()),
-            BlockInputBuilder::stack(global_var("t")),
-        ));
-        let blocks = blocks.build(
-            &Uid::generate(),
-            &mut HashMap::default(),
-            &*project.get_target_context(),
-        );
-        sprite.target.blocks.0.extend(
-            blocks
-                .iter()
-                .map(|(i, b)| (i.clone().into_inner(), b.clone()))
-                .collect::<Vec<_>>(),
-        );
-    }
-
-    std::mem::drop(internal_project);
     println!("{}", "project generated successfully!".green().bold());
     println!("{}", "zipping project...".green().bold());
 

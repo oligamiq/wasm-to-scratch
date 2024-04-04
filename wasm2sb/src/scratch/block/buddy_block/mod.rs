@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use eyre::Result;
 use sb_itchy::blocks::*;
 use sb_itchy::custom_block::{CustomBlockInputType, CustomBlockTy};
+use sb_itchy::stack::StackBuilder;
 use sb_itchy::uid::Uid;
 use sb_sbity::{block::Block, string_hashmap::StringHashMap};
 
@@ -15,18 +16,11 @@ pub fn generate_buddy_block(
     ctx: &mut ProjectZip,
     n: usize,
     block_size: usize,
-) -> Result<StringHashMap<Block>> {
+) -> Result<Vec<StackBuilder>> {
     let pre_name = format!("{PRE_FUNC_NAME}buddy_block_{n}{block_size}");
-    let mut blocks: HashMap<Uid, Block> = HashMap::new();
+    let stack_builders = generate_buddy_block_init(ctx, n, block_size, &pre_name);
 
-    blocks.extend(generate_buddy_block_init(ctx, n, block_size, &pre_name));
-
-    Ok(StringHashMap(
-        blocks
-            .into_iter()
-            .map(|(k, v)| (k.inner().to_owned(), v))
-            .collect::<HashMap<_, _>>(),
-    ))
+    Ok(stack_builders)
 }
 
 fn generate_buddy_block_init(
@@ -34,15 +28,11 @@ fn generate_buddy_block_init(
     n: usize,
     block_size: usize,
     pre_name: &str,
-) -> HashMap<Uid, Block> {
+) -> Vec<StackBuilder> {
     let name = format!("{pre_name}init");
     ctx.define_custom_block(vec![CustomBlockInputType::Text(name.clone())], true);
 
-    let custom_stack_builder = define_custom_block(name);
+    let stack_builder = define_custom_block(name);
 
-    custom_stack_builder.build(
-        &Uid::generate(),
-        &mut HashMap::default(),
-        &*ctx.get_target_context(),
-    )
+    vec![stack_builder]
 }

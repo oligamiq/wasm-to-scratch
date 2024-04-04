@@ -1,32 +1,13 @@
+use sb_itchy::data::ListBuilder;
 use sb_sbity::{list::List as SbList, string_hashmap::StringHashMap};
 
 use crate::scratch::generate_id::generate_id;
 
-use super::block::to_utf8::generator::to_utf8_generator_list;
+use super::{block::to_utf8::generator::to_utf8_generator_list, sb3::ProjectZip};
 
-pub fn rewrite_list(list: &mut StringHashMap<SbList>) {
-    let names = list.0.keys().cloned().collect::<Vec<String>>();
-    let blocks: Vec<SbList> = vec![
-        SbList {
-            name: "__wasm_global_stack".into(),
-            values: Vec::new(),
-        },
-        SbList {
-            name: "__wasm_local_stack".into(),
-            values: Vec::new(),
-        },
-        SbList {
-            name: "__wasm_function_stack".into(),
-            values: Vec::new(),
-        },
-    ];
-    let utf8_list = to_utf8_generator_list();
-    let (utf8_list_list, utf8_list_id) = utf8_list.build("utf8".into());
-    list.0.insert(utf8_list_id.into_inner(), utf8_list_list);
-
-    for item in blocks {
-        if !names.contains(&item.name) {
-            list.0.insert(generate_id(), item);
-        }
+pub fn rewrite_list(ctx: &mut ProjectZip) {
+    let lists = vec!["__wasm_global_stack".into(), "__wasm_local_stack".into(), "__wasm_function_stack".into()];
+    for list in lists {
+        ctx.add_list_builder(list, ListBuilder::new(Vec::new()));
     }
 }

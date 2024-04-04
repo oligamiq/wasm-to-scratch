@@ -11,10 +11,15 @@ use parking_lot::RwLock;
 use sb_itchy::{
     build_context::{GlobalVarListContext, TargetContext},
     custom_block::{CustomBlockInputType, CustomBlockTy},
-    target::SpriteBuilder,
+    data::ListBuilder,
+    stack::StackBuilder,
+    target::{self, SpriteBuilder, TargetBuilder},
     uid::Uid,
 };
-use sb_sbity::{comment::Comment, project::Project, target::SpriteOrStage};
+use sb_sbity::{
+    block::Block, comment::Comment, project::Project, string_hashmap::StringHashMap,
+    target::SpriteOrStage,
+};
 
 use crate::util::get_preview_rect_from_block;
 
@@ -32,21 +37,10 @@ pub struct ProjectZip {
     x: i32,
     y: i32,
     target_context: TargetContextWrapper,
+    stack_builders: Vec<StackBuilder>,
+    global_list_builders: HashMap<String, ListBuilder>,
     comment_buff: CommentMap,
 }
-
-// impl Clone for ProjectZip {
-//     fn clone(&self) -> Self {
-//         let project_str = serde_json::to_string(&self.project).unwrap();
-//         let project = serde_json::from_str(&project_str).unwrap();
-
-//         Self {
-//             path: self.path.clone(),
-//             project,
-//             buff: self.buff.clone(),
-//         }
-//     }
-// }
 
 impl ProjectZip {
     #[cfg(not(target_arch = "wasm32"))]
@@ -102,9 +96,7 @@ impl ProjectZip {
                     sprite = Some(sprite_impl);
                     break;
                 }
-                SpriteOrStage::Stage(stage_impl) => {
-                    rewrite_list(&mut stage_impl.target.lists);
-                }
+                _ => {}
             }
         }
 
@@ -141,6 +133,8 @@ impl ProjectZip {
             y: top_y as i32,
             x: (left_x - 2000) as i32,
             comment_buff: HashMap::new(),
+            stack_builders: Vec::new(),
+            global_list_builders: HashMap::new(),
         })
     }
 
@@ -163,12 +157,66 @@ impl ProjectZip {
         self.y += y;
     }
 
-    pub fn get_target_context(&self) -> TargetContextGuard {
-        self.target_context.get_target_context()
+    // pub fn get_target_context(&self) -> TargetContextGuard {
+    //     self.target_context.get_target_context()
+    // }
+
+    // pub fn target_context_mut(&mut self) -> &mut TargetContextWrapper {
+    //     &mut self.target_context
+    // }
+
+    pub fn add_stack_builder(&mut self, mut stack_builder: StackBuilder) {
+        stack_builder.set_top_block_position(self.get_x() as f64, self.get_y() as f64);
+        self.stack_builders.push(stack_builder);
+        self.update_y(200);
     }
 
-    pub fn target_context_mut(&mut self) -> &mut TargetContextWrapper {
-        &mut self.target_context
+    pub fn add_stack_builders(&mut self, stack_builders: Vec<StackBuilder>) {
+        for mut stack_builder in stack_builders {
+            self.add_stack_builder(stack_builder);
+        }
+    }
+
+    pub fn add_list_builder(&mut self, name: String, list_builder: ListBuilder) {
+        self.global_list_builders.insert(name, list_builder);
+    }
+
+    pub fn build(&mut self) {
+        let mut sprite = None;
+        let internal_project = self.project.clone();
+        let mut internal_project = internal_project.write();
+        for target in internal_project.targets.iter_mut() {
+            match target {
+                SpriteOrStage::Sprite(sprite_impl) => {
+                    sprite = Some(sprite_impl);
+                    break;
+                }
+                SpriteOrStage::Stage(stage) => {
+                    stage.target.variables.0.clear();
+                    for (name, list_builder) in &self.global_list_builders {
+                        let (list, uid) = list_builder.clone().build(name.clone());
+                        stage.target.lists.0.insert(uid.inner().into(), list);
+                        self.target_context.global_lists.insert(name.clone(), uid);
+                    }
+                }
+            }
+        }
+        let sprite = sprite.unwrap();
+        let target_context = self.target_context.get_target_context();
+        let blocks = self
+            .stack_builders
+            .iter()
+            .flat_map(|stack_builder| {
+                stack_builder.clone().build(
+                    &Uid::generate(),
+                    &mut self.comment_buff,
+                    &*target_context,
+                )
+            })
+            .map(|(uid, block)| (uid.into_inner(), block))
+            .collect::<HashMap<_, _>>();
+
+        sprite.target.blocks = StringHashMap(blocks);
     }
 
     pub fn zip(&self) -> Result<Vec<u8>> {
@@ -432,6 +480,21 @@ impl TargetContextWrapper {
         let custom_func = CustomBlockTy::new(args, warp);
         self.custom_blocks.push(custom_func);
     }
+
+    pub fn build(&self, stack_builder: StackBuilder) -> StringHashMap<Block> {
+        let blocks = stack_builder.build(
+            &Uid::generate(),
+            &mut HashMap::default(),
+            &*self.get_target_context(),
+        );
+
+        let blocks = blocks
+            .into_iter()
+            .map(|(k, v)| (k.into_inner(), v))
+            .collect();
+
+        StringHashMap(blocks)
+    }
 }
 
 impl std::fmt::Debug for TargetContextWrapper {
@@ -469,7 +532,24 @@ impl TargetContextGuard {
 impl std::ops::Drop for TargetContextGuard {
     fn drop(&mut self) {
         unsafe {
-            std::mem::drop(Box::from_raw(self.target_context));
+            let target_context = Box::from_raw(self.target_context);
+            let TargetContext {
+                global_vars,
+                global_lists,
+                this_sprite_vars,
+                this_sprite_lists,
+                all_broadcasts,
+                custom_blocks,
+            } = self.target_context;
+
+            std::mem::drop(Box::from_raw(global_vars));
+            std::mem::drop(Box::from_raw(global_lists));
+            std::mem::drop(Box::from_raw(this_sprite_vars));
+            std::mem::drop(Box::from_raw(this_sprite_lists));
+            std::mem::drop(Box::from_raw(all_broadcasts));
+            std::mem::drop(Box::from_raw(custom_blocks));
+
+            std::mem::drop(target_context);
             self.atomic_counter
                 .fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
         }
