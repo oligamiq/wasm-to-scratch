@@ -1,0 +1,13 @@
+[package]
+name = "sb-itchy-support"
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+sb-sbity = { version = "0.6.0", git = "https://github.com/rusty-scratch/sb-sbity" }
+sb-itchy = { git = "https://github.com/oligamiq/sb-itchy" }
