@@ -10,7 +10,11 @@ type Bib = BlockInputBuilder;
 use sb_itchy_support::block_generator_into::*;
 use sb_itchy_support::blocks_wrapper::*;
 
-pub fn check_uppercase_func_generator(ctx: &mut ProjectZip) -> String {
+pub fn check_uppercase_func_generator(
+    ctx: &mut ProjectZip,
+    offset: i32,
+    list_init_data: &mut Vec<ValueWithBool>,
+) -> String {
     let unicodes = all_unicode_upper_letter_case();
 
     for unicodes in &unicodes {
@@ -18,39 +22,25 @@ pub fn check_uppercase_func_generator(ctx: &mut ProjectZip) -> String {
     }
     println!("{:?}", unicodes.len());
 
+    list_init_data.extend(
+        unicodes
+            .iter()
+            .flat_map(|((first, last), diff, _)| {
+                vec![
+                    ValueWithBool::Number(Number::Int(*first as i64 - 1)),
+                    ValueWithBool::Number(Number::Int(*last as i64 + 1)),
+                    ValueWithBool::Number(Number::Int(*diff as i64)),
+                ]
+            })
+            .collect::<Vec<ValueWithBool>>(),
+    );
+
     let check_uppercase_func_name = format!("{PRE_UNICODE}check_uppercase");
     let check_uppercase_impl_func_name = format!("{PRE_UNICODE}check_uppercase_impl");
 
     let tmp_list_name = format!("{PRE_UNICODE}tmp");
     ctx.add_list_builder(tmp_list_name.clone(), ListBuilder::new(Vec::new()));
     let upper_case_data_list_name = format!("{PRE_UNICODE}uppercase_data");
-
-    let mut offset = 0;
-
-    ctx.add_list_builder(
-        upper_case_data_list_name.clone(),
-        ListBuilder::new({
-            let mut var = vec![
-                ValueWithBool::Number(Number::Int(0)),
-                ValueWithBool::Bool(false),
-                ValueWithBool::Text("".to_string()),
-            ];
-            offset += var.len();
-            var.extend(
-                unicodes
-                    .iter()
-                    .flat_map(|((first, last), diff, _)| {
-                        vec![
-                            ValueWithBool::Number(Number::Int(*first as i64 - 1)),
-                            ValueWithBool::Number(Number::Int(*last as i64 + 1)),
-                            ValueWithBool::Number(Number::Int(*diff as i64)),
-                        ]
-                    })
-                    .collect::<Vec<ValueWithBool>>(),
-            );
-            var
-        }),
-    );
 
     let default_resource = Resource::new(
         "svg".into(),
@@ -93,8 +83,7 @@ pub fn check_uppercase_func_generator(ctx: &mut ProjectZip) -> String {
     let set_return_var = |value: BlockInputBuilder| -> StackBuilder {
         replace_in_list(&upper_case_data_list(), 1, value)
     };
-    let item_in_upper_case_data =
-        |index: BlockInputBuilder| -> Bib { item_in_list(&upper_case_data_list(), index) };
+    let item_in_upper_case_data = |index| item_in_list(&upper_case_data_list(), index);
     let return_var = || item_in_list(&upper_case_data_list(), 1);
     let unicode = || custom_block_var_string_number("unicode");
     let str = || custom_block_var_string_number("str");

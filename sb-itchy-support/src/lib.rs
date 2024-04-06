@@ -92,6 +92,26 @@ pub mod block_generator_into {
     }
 
     ref_to!(Bib, Bfb, usize, i32, bool);
+
+    #[macro_export]
+    macro_rules! stacks {
+        () => (
+            (sb_itchy::stack::::new())
+        );
+        // ($($x:expr),+ $(,)?) => (
+        //     (sb_itchy::stack::StackBuilder::new().next($($x),+))
+        // );
+        ($($x:expr),*) => (
+            ( {
+                let s = sb_itchy::stack::StackBuilder::new();
+                $(
+                    let s = s.next($x);
+                )*
+                s
+            } )
+        );
+        // <$([<$arg_name:camel>]: BlockGeneratorInto<$arg_type>),*>
+    }
 }
 
 pub mod blocks_wrapper {
