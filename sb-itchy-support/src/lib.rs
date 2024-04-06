@@ -94,7 +94,7 @@ pub mod block_generator_into {
     ref_to!(Bib, Bfb, usize, i32, bool);
 
     #[macro_export]
-    macro_rules! stacks {
+    macro_rules! stack {
         () => (
             (sb_itchy::stack::::new())
         );

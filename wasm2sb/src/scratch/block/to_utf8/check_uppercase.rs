@@ -3,6 +3,7 @@ use crate::scratch::sb3::ProjectZip;
 
 use super::{unicode::all_unicode_upper_letter_case, PRE_UNICODE};
 use sb_itchy::prelude::*;
+use sb_itchy_support::stack;
 use sb_sbity::value::{Number, ValueWithBool};
 
 type Bib = BlockInputBuilder;
@@ -90,37 +91,43 @@ pub fn check_uppercase_func_generator(
     let stop_this_script = || stop("this script", false);
     let switch_costume_to_default = || switch_costume_to(costume_menu("default"));
 
-    let check_uppercase = define_custom_block(&check_uppercase_func_name)
-        .next(set_return_var((offset + 1).to()))
-        .next(repeat(
+    let check_uppercase = stack![
+        define_custom_block(&check_uppercase_func_name),
+        set_return_var((offset + 1).to()),
+        repeat(
             unicodes.len(),
-            if_else(
-                less_than(item_in_upper_case_data(return_var()), unicode()),
-                if_(
-                    less_than(unicode(), item_in_upper_case_data(add(return_var(), 1))),
-                    switch_costume_to_default()
-                        .next(switch_costume_to(add(
-                            costume("number"),
-                            div(sub(return_var(), offset + 1 - 3), 3),
-                        )))
-                        .next(call_custom_block(
-                            &check_uppercase_impl_func_name,
-                            vec![
-                                ("target", costume("name")),
-                                ("str", str()),
-                                ("unicode", unicode()),
-                                ("n", return_var()),
-                            ]
-                            .into_iter()
-                            .collect(),
-                        ))
-                        .next(if_(item_in_upper_case_data(2.to()), stop_this_script())),
+            stack![
+                if_else(
+                    less_than(item_in_upper_case_data(return_var()), unicode()),
+                    if_(
+                        less_than(unicode(), item_in_upper_case_data(add(return_var(), 1))),
+                        stack![
+                            switch_costume_to_default(),
+                            switch_costume_to(add(
+                                costume("number"),
+                                div(sub(return_var(), offset + 1 - 3), 3),
+                            )),
+                            call_custom_block(
+                                &check_uppercase_impl_func_name,
+                                vec![
+                                    ("target", costume("name")),
+                                    ("str", str()),
+                                    ("unicode", unicode()),
+                                    ("n", return_var()),
+                                ]
+                                .into_iter()
+                                .collect(),
+                            ),
+                            if_(item_in_upper_case_data(2.to()), stop_this_script())
+                        ],
+                    ),
+                    stack![set_return_var(unicode()), stop_this_script()],
                 ),
-                set_return_var(unicode()).next(stop_this_script()),
-            )
-            .next(set_return_var(add(return_var(), 3))),
-        ))
-        .next(set_return_var(unicode()));
+                set_return_var(add(return_var(), 3))
+            ],
+        ),
+        set_return_var(unicode())
+    ];
 
     ctx.add_stack_builder(check_uppercase);
 
@@ -144,63 +151,69 @@ pub fn check_uppercase_func_generator(
         ),
     );
 
-    let feature_surrogate_2 =
-        switch_costume_to(global_list(&tmp_list_name)).next(delete_all_in_list(tmp_list()));
+    let feature_surrogate_2 = stack![
+        switch_costume_to(global_list(&tmp_list_name)),
+        delete_all_in_list(tmp_list())
+    ];
 
-    let check_uppercase_impl = define_custom_block(&check_uppercase_impl_func_name).next(if_else(
-        contains(target(), str()),
-        if feature_surrogate_pair {
-            if_else(
-                less_than("0xFFFF", unicode()),
-                repeat(
-                    div(length_of(target()), 2),
-                    add_to_list(
-                        tmp_list(),
-                        join(
-                            letter_of_target(add(mul(length_of_list(tmp_list()), 2), 1)),
-                            letter_of_target(add(mul(length_of_list(tmp_list()), 2), 2)),
+    let check_uppercase_impl = stack![
+        define_custom_block(&check_uppercase_impl_func_name),
+        if_else(
+            contains(target(), str()),
+            stack![
+                if feature_surrogate_pair {
+                    if_else(
+                        less_than("0xFFFF", unicode()),
+                        repeat(
+                            div(length_of(target()), 2),
+                            add_to_list(
+                                tmp_list(),
+                                join(
+                                    letter_of_target(add(mul(length_of_list(tmp_list()), 2), 1)),
+                                    letter_of_target(add(mul(length_of_list(tmp_list()), 2), 2)),
+                                ),
+                            ),
                         ),
-                    ),
-                ),
-                feature_surrogate_1,
-            )
-        } else {
-            feature_surrogate_1
-        }
-        .next(replace_in_list(
-            tmp_list(),
-            count_of_item_in_list(tmp_list(), str()),
-            str(),
-        ))
-        .next(switch_costume_to_default())
-        .next(if feature_surrogate_pair {
-            if_else(
-                less_than("0xFFFF", unicode()),
-                set_tmp_var("".to())
-                    .next(repeat(
-                        length_of_list(tmp_list()),
-                        set_tmp_var(join(item_in_list(tmp_list(), "last"), tmp_var()))
-                            .next(delete_in_list(tmp_list(), "last")),
-                    ))
-                    .next(switch_costume_to(tmp_var()))
-                    .next(set_tmp_var("".to())),
-                feature_surrogate_2,
-            )
-        } else {
-            feature_surrogate_2
-        })
-        .next(if_else(
-            equals(costume("name"), "default"),
-            set_flag_var(false),
-            set_flag_var(true)
-                .next(set_return_var(sub(
-                    unicode(),
-                    item_in_upper_case_data(add(n(), 2)),
-                )))
-                .next(switch_costume_to_default()),
-        )),
-        set_flag_var(true).next(set_return_var(unicode())),
-    ));
+                        feature_surrogate_1,
+                    )
+                } else {
+                    feature_surrogate_1
+                },
+                replace_in_list(tmp_list(), count_of_item_in_list(tmp_list(), str()), str(),),
+                switch_costume_to_default(),
+                if feature_surrogate_pair {
+                    if_else(
+                        less_than("0xFFFF", unicode()),
+                        stack![
+                            set_tmp_var("".to()),
+                            repeat(
+                                length_of_list(tmp_list()),
+                                stack![
+                                    set_tmp_var(join(item_in_list(tmp_list(), "last"), tmp_var())),
+                                    delete_in_list(tmp_list(), "last")
+                                ],
+                            ),
+                            switch_costume_to(tmp_var()),
+                            set_tmp_var("".to())
+                        ],
+                        feature_surrogate_2,
+                    )
+                } else {
+                    feature_surrogate_2
+                },
+                if_else(
+                    equals(costume("name"), "default"),
+                    set_flag_var(false),
+                    stack![
+                        set_flag_var(true),
+                        set_return_var(sub(unicode(), item_in_upper_case_data(add(n(), 2)),)),
+                        switch_costume_to_default()
+                    ],
+                )
+            ],
+            stack![set_flag_var(true), set_return_var(unicode())],
+        )
+    ];
 
     ctx.add_stack_builder(check_uppercase_impl);
 

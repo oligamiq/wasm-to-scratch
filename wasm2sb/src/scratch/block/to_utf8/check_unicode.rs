@@ -1,7 +1,7 @@
 use sb_itchy::{
     blocks::define_custom_block, custom_block::CustomBlockInputType, stack::StackBuilder,
 };
-use sb_itchy_support::{blocks_wrapper::*, stacks};
+use sb_itchy_support::{blocks_wrapper::*, stack};
 
 use crate::scratch::{block::to_utf8::PRE_UNICODE, sb3::ProjectZip};
 
