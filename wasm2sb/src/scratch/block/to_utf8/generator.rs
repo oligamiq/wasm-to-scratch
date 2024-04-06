@@ -15,23 +15,26 @@ use crate::scratch::sb3::ProjectZip;
 use super::{check_uppercase::check_uppercase_func_generator, upper_case_data_list_name};
 
 pub fn to_utf8_generator(target_ctx: &mut ProjectZip) {
-    let mut offset = 0;
-
     let upper_case_data_list_name = upper_case_data_list_name();
 
     let mut list_init_data = vec![
-        ValueWithBool::Number(Number::Int(0)),
-        ValueWithBool::Bool(false),
-        ValueWithBool::Text("".to_string()),
+        ValueWithBool::Number(Number::Int(0)), // check_uppercase_func return value
+        ValueWithBool::Bool(false),            // check_uppercase_func_impl end flag
+        ValueWithBool::Text("".to_string()),   // check_uppercase_func_impl tmp
         ValueWithBool::Text({
+            // check_unicode_func ascii data
             let mut s = String::new();
             for i in 0x20..0x7E + 1 {
                 s.push(char::from(i));
             }
             s
         }),
+        ValueWithBool::Text("".to_string()), // check_unicode_func return
+        ValueWithBool::Number(Number::Int(0)), // check_unicode_func 二分探索法用 mid
+        ValueWithBool::Number(Number::Int(0)), // check_unicode_func 二分探索法用 min
+        ValueWithBool::Number(Number::Int(0)), // check_unicode_func 二分探索法用 max
     ];
-    offset += list_init_data.len() as i32;
+    let offset = list_init_data.len() as i32;
 
     check_uppercase_func_generator(target_ctx, offset, &mut list_init_data);
 

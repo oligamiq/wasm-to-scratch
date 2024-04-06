@@ -96,7 +96,7 @@ pub mod block_generator_into {
     #[macro_export]
     macro_rules! stack {
         () => (
-            (sb_itchy::stack::::new())
+            (sb_itchy::stack::StackBuilder::new())
         );
         // ($($x:expr),+ $(,)?) => (
         //     (sb_itchy::stack::StackBuilder::new().next($($x),+))
