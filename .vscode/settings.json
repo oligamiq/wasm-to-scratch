@@ -21,6 +21,7 @@
     "sama",
     "sbity",
     "thiserror",
+    "unicodes",
     "wasmparser"
 ]
 }

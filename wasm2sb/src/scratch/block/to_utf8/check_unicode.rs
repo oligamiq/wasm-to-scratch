@@ -3,7 +3,6 @@ use sb_itchy::{
     stack::StackBuilder,
 };
 use sb_itchy_support::{block_generator_into::BlockGeneratorInto, blocks_wrapper::*, stack};
-use sb_sbity::value;
 
 use crate::scratch::{block::to_utf8::PRE_UNICODE, sb3::ProjectZip};
 
@@ -20,12 +19,6 @@ pub fn check_unicode_func_generator(ctx: &mut ProjectZip) {
         true,
     );
 
-    let check_unicode_func_generator_inner_ascii = check_unicode_func_generator_inner_ascii();
-
-    let check_unicode_func = define_custom_block(&check_unicode_func_name);
-}
-
-pub fn check_unicode_func_generator_inner_ascii() -> StackBuilder {
     let tmp_list_name = tmp_list_name();
     let upper_case_data_list_name = upper_case_data_list_name();
 
@@ -64,7 +57,7 @@ pub fn check_unicode_func_generator_inner_ascii() -> StackBuilder {
         delete_all_in_list(&tmp_list())
     ];
 
-    let check_surrogate_pair = stack![];
+    let check_surrogate_pair = stack![set_dichotomous_search_min(add("0xD800", 0))];
 
     let check_surrogate_no_pair = stack![
         set_dichotomous_search_mid(add("0x8000", 0)),
@@ -72,10 +65,23 @@ pub fn check_unicode_func_generator_inner_ascii() -> StackBuilder {
         set_dichotomous_search_max(add("0xFFFF", 0)),
         forever(stack![if_else(
             less_than(unicode(), to_unicode(dichotomous_search_mid())),
-            stack![],
-            stack![],
+            stack![set_dichotomous_search_max(sub(dichotomous_search_mid(), 1))],
+            stack![set_dichotomous_search_min(add(dichotomous_search_mid(), 1))],
         )])
     ];
 
-    check_unicode_func_generator_inner_ascii
+    let check_unicode_func = stack![
+        define_custom_block(&check_unicode_func_name),
+        if_else(
+            contains(ascii_var(), unicode()),
+            stack![check_unicode_func_generator_inner_ascii],
+            stack![if_else(
+                equals(length_of(unicode()), 2),
+                check_surrogate_pair,
+                check_surrogate_no_pair,
+            )]
+        )
+    ];
+
+    ctx.add_stack_builder(check_unicode_func);
 }

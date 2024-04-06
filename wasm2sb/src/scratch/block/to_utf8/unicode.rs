@@ -12,12 +12,18 @@ pub fn all_unicode() -> String {
     s
 }
 
-pub fn all_unicode_upper_letter_case() -> Vec<((u32, u32), i64, String)> {
+pub fn all_unicode_upper_letter_case(
+    feature_surrogate_pair: bool,
+) -> Vec<((u32, u32), i64, String)> {
     let mut s: Vec<((u32, u32), i64, String)> = Vec::new();
     let mut succession = Vec::new();
     let mut first = 0;
     let mut diff = None;
-    let mut chars = (0x0000..0x3ffff + 1)
+    let mut chars = (0x0000..if feature_surrogate_pair {
+        0x3ffff + 1
+    } else {
+        0xffff + 1
+    })
         .filter_map(|i| std::char::from_u32(i))
         .filter_map(|c| {
             // if !c.is_uppercase() {

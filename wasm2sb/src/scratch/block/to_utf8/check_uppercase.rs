@@ -16,7 +16,9 @@ pub fn check_uppercase_func_generator(
     offset: i32,
     list_init_data: &mut Vec<ValueWithBool>,
 ) -> String {
-    let unicodes = all_unicode_upper_letter_case();
+    let feature_surrogate_pair = false;
+
+    let unicodes = all_unicode_upper_letter_case(feature_surrogate_pair);
 
     for unicodes in &unicodes {
         println!("{:?}", unicodes);
@@ -140,8 +142,6 @@ pub fn check_uppercase_func_generator(
         replace_in_list(upper_case_data_list(), 3, value)
     };
     let tmp_var = || item_in_list(upper_case_data_list(), 3);
-
-    let feature_surrogate_pair = false;
 
     let feature_surrogate_1 = repeat(
         length_of(target()),
