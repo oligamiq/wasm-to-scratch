@@ -5,6 +5,7 @@
     "argumentnames",
     "bindgen",
     "canonicalize",
+    "datetime",
     "dealloc",
     "docsrs",
     "Externref",

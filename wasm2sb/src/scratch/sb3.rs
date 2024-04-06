@@ -8,11 +8,13 @@ use futures::{io::Cursor, AsyncReadExt};
 use futures_lite as futures;
 use log::warn;
 use sb_itchy::{
+    asset::CostumeBuilder,
     build_context::{GlobalVarListContext, TargetContext},
     custom_block::{CustomBlockInputType, CustomBlockTy},
     data::ListBuilder,
-    stack::StackBuilder,
-    target::{SpriteBuilder, TargetBuilder},
+    resource::Resource,
+    stack::{BlockHeightData, StackBuilder},
+    target::SpriteBuilder,
     uid::Uid,
 };
 use sb_sbity::{
@@ -21,8 +23,6 @@ use sb_sbity::{
 };
 
 use crate::util::get_preview_rect_from_block;
-
-use super::rewrite_dependency::rewrite_list;
 
 use eyre::{eyre, Context, Result};
 
@@ -38,6 +38,8 @@ pub struct ProjectZip {
     target_context: TargetContextWrapper,
     stack_builders: Vec<StackBuilder>,
     global_list_builders: HashMap<String, ListBuilder>,
+    costume_builders: Vec<CostumeBuilder>,
+    res_buff: Vec<Resource>,
     comment_buff: CommentMap,
 }
 
@@ -134,6 +136,8 @@ impl ProjectZip {
             comment_buff: HashMap::new(),
             stack_builders: Vec::new(),
             global_list_builders: HashMap::new(),
+            costume_builders: Vec::new(),
+            res_buff: Vec::new(),
         })
     }
 
@@ -166,18 +170,23 @@ impl ProjectZip {
 
     pub fn add_stack_builder(&mut self, mut stack_builder: StackBuilder) {
         stack_builder.set_top_block_position(self.get_x() as f64, self.get_y() as f64);
+        let height = stack_builder.calc_block_height(&BlockHeightData::default(), false);
         self.stack_builders.push(stack_builder);
-        self.update_y(200);
+        self.update_y(height as i32 / 2 + 100);
     }
 
     pub fn add_stack_builders(&mut self, stack_builders: Vec<StackBuilder>) {
-        for mut stack_builder in stack_builders {
+        for stack_builder in stack_builders {
             self.add_stack_builder(stack_builder);
         }
     }
 
     pub fn add_list_builder(&mut self, name: String, list_builder: ListBuilder) {
         self.global_list_builders.insert(name, list_builder);
+    }
+
+    pub fn add_costume_builder(&mut self, costume_builder: CostumeBuilder) {
+        self.costume_builders.push(costume_builder);
     }
 
     pub fn build(&mut self) {
@@ -190,8 +199,9 @@ impl ProjectZip {
                 }
                 SpriteOrStage::Stage(stage) => {
                     stage.target.variables.0.clear();
-                    for (name, list_builder) in &self.global_list_builders {
-                        let (list, uid) = list_builder.clone().build(name.clone());
+                    let global_list_builders = std::mem::take(&mut self.global_list_builders);
+                    for (name, list_builder) in global_list_builders {
+                        let (list, uid) = list_builder.build(name.clone());
                         stage.target.lists.0.insert(uid.inner().into(), list);
                         self.target_context.global_lists.insert(name.clone(), uid);
                     }
@@ -200,20 +210,22 @@ impl ProjectZip {
         }
         let sprite = sprite.unwrap();
         let target_context = self.target_context.get_target_context();
-        let blocks = self
-            .stack_builders
-            .iter()
+        let stack_builders = std::mem::take(&mut self.stack_builders);
+        let blocks = stack_builders
+            .into_iter()
             .flat_map(|stack_builder| {
-                stack_builder.clone().build(
-                    &Uid::generate(),
-                    &mut self.comment_buff,
-                    &*target_context,
-                )
+                stack_builder.build(&Uid::generate(), &mut self.comment_buff, &*target_context)
             })
             .map(|(uid, block)| (uid.into_inner(), block))
             .collect::<HashMap<_, _>>();
 
         sprite.target.blocks = StringHashMap(blocks);
+
+        let costume = &mut sprite.target.costumes;
+        let costume_builders = std::mem::take(&mut self.costume_builders);
+        for costume_builder in costume_builders {
+            costume.push(costume_builder.build(&mut self.res_buff));
+        }
     }
 
     pub fn zip(&self) -> Result<Vec<u8>> {
@@ -254,6 +266,18 @@ impl ProjectZip {
             let builder = ZipEntryBuilder::new(entry.filename().to_owned(), entry.compression());
             futures::future::block_on(async {
                 writer.write_entry_whole(builder, buffer.as_slice()).await
+            })
+            .wrap_err("failed to write entry to zip file")?;
+        }
+
+        for res in &self.res_buff {
+            let mut res = res.clone();
+            let builder = ZipEntryBuilder::new(
+                res.generate_file_name().to_str().unwrap().into(),
+                async_zip::Compression::Deflate,
+            );
+            futures::future::block_on(async {
+                writer.write_entry_whole(builder, res.content()).await
             })
             .wrap_err("failed to write entry to zip file")?;
         }
@@ -530,14 +554,14 @@ impl std::ops::Drop for TargetContextGuard {
     fn drop(&mut self) {
         unsafe {
             let target_context = Box::from_raw(self.target_context);
-            let TargetContext {
-                global_vars,
-                global_lists,
-                this_sprite_vars,
-                this_sprite_lists,
-                all_broadcasts,
-                custom_blocks,
-            } = self.target_context;
+            // let TargetContext {
+            //     global_vars,
+            //     global_lists,
+            //     this_sprite_vars,
+            //     this_sprite_lists,
+            //     all_broadcasts,
+            //     custom_blocks,
+            // } = self.target_context;
 
             // std::mem::drop(Box::from_raw(global_vars));
             // std::mem::drop(Box::from_raw(global_lists));

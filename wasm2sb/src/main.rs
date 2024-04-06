@@ -1,14 +1,6 @@
-use std::collections::HashMap;
-
 use colored::Colorize;
 use config::CommandLineArgs;
-use sb_itchy::{
-    block::{BlockFieldBuilder, BlockInputBuilder},
-    blocks::{self, *},
-    uid::Uid,
-};
-use sb_sbity::{block::BlockInputValue, target::SpriteOrStage};
-use scratch::rewrite_dependency::rewrite_list;
+
 use scratch::test_data::test_project;
 
 use crate::{
@@ -33,7 +25,7 @@ fn main() -> Result<()> {
 
     // 🌠
 
-    let (config, path) =
+    let (_config, path) =
         CommandLineArgs::parse_and_check().wrap_err("failed to parse command line arguments")?;
 
     let mut project = test_project().unwrap();
@@ -84,7 +76,7 @@ fn main() -> Result<()> {
                 println!("import {:?}", function.id());
                 println!("{:?}", import);
             }
-            walrus::FunctionKind::Local(locals) => {
+            walrus::FunctionKind::Local(_locals) => {
                 println!("local {:?}", function.id());
                 // println!("{:?}", locals);
                 println!("{:?}", func_type);

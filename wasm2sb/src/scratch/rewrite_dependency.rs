@@ -1,7 +1,4 @@
 use sb_itchy::data::ListBuilder;
-use sb_sbity::{list::List as SbList, string_hashmap::StringHashMap};
-
-use crate::scratch::generate_id::generate_id;
 
 use super::sb3::ProjectZip;
 

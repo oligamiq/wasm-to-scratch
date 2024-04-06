@@ -1,13 +1,9 @@
 // management memory system for buddy block
 
-use std::collections::HashMap;
-
 use eyre::Result;
 use sb_itchy::blocks::*;
-use sb_itchy::custom_block::{CustomBlockInputType, CustomBlockTy};
+use sb_itchy::custom_block::CustomBlockInputType;
 use sb_itchy::stack::StackBuilder;
-use sb_itchy::uid::Uid;
-use sb_sbity::{block::Block, string_hashmap::StringHashMap};
 
 use crate::pre_name::PRE_FUNC_NAME;
 use crate::scratch::sb3::ProjectZip;
@@ -25,8 +21,8 @@ pub fn generate_buddy_block(
 
 fn generate_buddy_block_init(
     ctx: &mut ProjectZip,
-    n: usize,
-    block_size: usize,
+    _n: usize,
+    _block_size: usize,
     pre_name: &str,
 ) -> Vec<StackBuilder> {
     let name = format!("{pre_name}init");

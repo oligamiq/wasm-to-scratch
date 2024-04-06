@@ -1,25 +1,14 @@
-use std::collections::HashMap;
-
-use crate::{
-    scratch::sb3::{ProjectZip, TargetContextWrapper},
-    util::wrap_by_len,
-    GenCtx,
-};
+use crate::{scratch::sb3::ProjectZip, util::wrap_by_len, GenCtx};
 
 use sb_itchy::{
     block::{BlockFieldBuilder, BlockInputBuilder},
     blocks::*,
-    build_context::TargetContext,
-    custom_block::{CustomBlockInputType, CustomBlockTy},
+    custom_block::CustomBlockInputType,
     stack::StackBuilder,
-    uid::Uid,
 };
 
 use crate::pre_name::PRE_FUNC_NAME;
-use sb_sbity::{
-    block::{Block, BlockInputValue},
-    string_hashmap::StringHashMap,
-};
+use sb_sbity::block::BlockInputValue;
 use walrus::{Function, Type, ValType};
 
 // https://developer.mozilla.org/ja/docs/WebAssembly/Understanding_the_text_format

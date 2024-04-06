@@ -13,13 +13,15 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 # wasmparser = "0.121"
 # https://docs.rs/rs-sb3/
-sb-sbity = { version = "0.6.0", git = "https://github.com/rusty-scratch/sb-sbity" }
+# sb-sbity = { version = "0.6.0", git = "https://github.com/rusty-scratch/sb-sbity" }
+sb-sbity = { version = "0.6.0", git = "https://github.com/oligamiq/sb-sbity" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 parking_lot = "0.12"
 walrus = "0.20"
-sb-itchy = { git = "https://github.com/oligamiq/sb-itchy" }
-# sb-itchy = { git = "https://github.com/rusty-scratch/sb-itchy" }
+sb-itchy = { git = "https://github.com/oligamiq/sb-itchy", branch = "oligamiq" }
+sb-itchy-support = { path = "../sb-itchy-support" }
+# sb-itchy = { package = "packed_simd" }
 
 # log
 log = "0.4"
@@ -37,6 +39,8 @@ semver = "1.0.22"
 
 # scratch base system
 sb_buddy_block_base = { path = "../buddy_block"}
+paste = "1.0.14"
+zstd-sys = "=2.0.9"
 
 [dependencies.futures-lite]
 version = "2.3"
@@ -56,9 +60,8 @@ version = "0.2"
 version = "0.3"
 
 [dependencies.async_zip]
-version = "0.0"
+version = "0.0.17"
 default-features = false
-
 features = ["full-wasm"]
 
 [dependencies.id-arena]

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = [ "testcode", "testreactor", "wasm2sb", "buddy_block", "depict_nums", "wasm-sb-bindgen", "wasm-sb-bindgen-testcode", "wasm-sb-bindgen-macro"]
+members = [ "testcode", "testreactor", "wasm2sb", "buddy_block", "depict_nums", "wasm-sb-bindgen", "wasm-sb-bindgen-testcode", "wasm-sb-bindgen-macro", "sb-itchy-support"]
 default-members = ["wasm2sb"]
 
 [workspace.package]

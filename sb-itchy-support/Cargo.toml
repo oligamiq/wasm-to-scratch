@@ -9,5 +9,6 @@ version.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-sb-sbity = { version = "0.6.0", git = "https://github.com/rusty-scratch/sb-sbity" }
-sb-itchy = { git = "https://github.com/oligamiq/sb-itchy" }
+sb-sbity = { version = "0.6.0", git = "https://github.com/oligamiq/sb-sbity" }
+sb-itchy = { git = "https://github.com/oligamiq/sb-itchy", branch = "oligamiq"}
+paste = "1.0"

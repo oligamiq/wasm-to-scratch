@@ -1,26 +1,14 @@
-use std::collections::HashMap;
-
 use sb_itchy::{
     block::{BlockFieldBuilder, BlockInputBuilder},
     blocks::{define_custom_block, set_var_to},
-    build_context::TargetContext,
-    custom_block::{CustomBlockInputType, CustomBlockTy},
-    data::ListBuilder,
+    custom_block::CustomBlockInputType,
     stack::StackBuilder,
-    uid::Uid,
 };
-use sb_sbity::{
-    block::{Block, BlockInputValue},
-    string_hashmap::StringHashMap,
-    value::Value,
-};
+use sb_sbity::block::BlockInputValue;
 
-use crate::scratch::sb3::{ProjectZip, TargetContextWrapper};
+use crate::scratch::sb3::ProjectZip;
 
-use super::{
-    check_uppercase::check_uppercase_func_generator,
-    unicode::{all_unicode, all_unicode_upper_letter_case},
-};
+use super::check_uppercase::check_uppercase_func_generator;
 
 type BiB = BlockInputBuilder;
 type BiV = BlockInputValue;

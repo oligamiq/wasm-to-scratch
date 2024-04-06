@@ -671,6 +671,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "paste"
+version = "1.0.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c"
+
+[[package]]
 name = "path-slash"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -829,7 +835,7 @@ checksum = "e86697c916019a8588c99b5fac3cead74ec0b4b819707a682fd4d23fa0ce1ba1"
 [[package]]
 name = "sb-itchy"
 version = "0.2.0"
-source = "git+https://github.com/oligamiq/sb-itchy#837b23491375b76fa0ec36aab6fd8e74f1a65296"
+source = "git+https://github.com/oligamiq/sb-itchy?branch=oligamiq#0965bd6459be891292699069161d162e023fa9a4"
 dependencies = [
  "getrandom",
  "md5",
@@ -840,9 +846,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "sb-itchy-support"
+version = "0.1.0"
+dependencies = [
+ "paste",
+ "sb-itchy",
+ "sb-sbity",
+]
+
+[[package]]
 name = "sb-sbity"
 version = "0.6.0"
-source = "git+https://github.com/rusty-scratch/sb-sbity#00f1feacaec0985535d7326861dbd36dbe137478"
+source = "git+https://github.com/oligamiq/sb-sbity#282aad344ec55025d2696ac5c820781b8e415f1a"
 dependencies = [
  "serde",
  "serde_json",
@@ -1365,8 +1380,10 @@ dependencies = [
  "id-arena",
  "log",
  "parking_lot",
+ "paste",
  "path-slash",
  "sb-itchy",
+ "sb-itchy-support",
  "sb-sbity",
  "sb_buddy_block_base",
  "semver",
@@ -1381,6 +1398,7 @@ dependencies = [
  "walrus",
  "wasm-bindgen",
  "wasm-opt",
+ "zstd-sys",
 ]
 
 [[package]]
@@ -1593,27 +1611,27 @@ dependencies = [
 
 [[package]]
 name = "zstd"
-version = "0.13.1"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d789b1514203a1120ad2429eae43a7bd32b90976a7bb8a05f7ec02fa88cc23a"
+checksum = "bffb3309596d527cfcba7dfc6ed6052f1d39dfbd7c867aa2e865e4a449c10110"
 dependencies = [
  "zstd-safe",
 ]
 
 [[package]]
 name = "zstd-safe"
-version = "7.1.0"
+version = "7.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1cd99b45c6bc03a018c8b8a86025678c87e55526064e38f9df301989dce7ec0a"
+checksum = "43747c7422e2924c11144d5229878b98180ef8b06cca4ab5af37afc8a8d8ea3e"
 dependencies = [
  "zstd-sys",
 ]
 
 [[package]]
 name = "zstd-sys"
-version = "2.0.10+zstd.1.5.6"
+version = "2.0.9+zstd.1.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c253a4914af5bafc8fa8c86ee400827e83cf6ec01195ec1f1ed8441bf00d65aa"
+checksum = "9e16efa8a874a0481a574084d34cc26fdb3b99627480f785888deb6386506656"
 dependencies = [
  "cc",
  "pkg-config",
