@@ -53,7 +53,7 @@ pub fn check_unicode_func_generator(ctx: &mut ProjectZip) {
                 letter_of(add(length_of_list(tmp_list()), 1), ascii_var()),
             )],
         ),
-        set_unicode(add(count_of_item_in_list(tmp_list(), unicode()), 0x1F)),
+        set_unicode(add(count_of_item_in_list(tmp_list(), unicode()), "0x1F")),
         delete_all_in_list(&tmp_list())
     ];
 
