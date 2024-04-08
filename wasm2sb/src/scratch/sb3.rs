@@ -228,7 +228,13 @@ impl ProjectZip {
         }
 
         let res_buff = std::mem::take(&mut self.res_buff);
-        self.res_buff = res_buff.into_iter().map(|mut i| (i.generate_file_name(), i)).collect::<HashMap<_, _>>().into_iter().map(|(_, i)| i).collect::<Vec<_>>();
+        self.res_buff = res_buff
+            .into_iter()
+            .map(|mut i| (i.generate_file_name(), i))
+            .collect::<HashMap<_, _>>()
+            .into_iter()
+            .map(|(_, i)| i)
+            .collect::<Vec<_>>();
     }
 
     pub fn zip(&self) -> Result<Vec<u8>> {
