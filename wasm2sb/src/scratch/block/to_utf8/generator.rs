@@ -14,7 +14,7 @@ pub fn to_utf8_generator(target_ctx: &mut ProjectZip) {
     let mut list_init_data = vec![
         ValueWithBool::Number(Number::Int(0)), // check_uppercase_func return value
         ValueWithBool::Bool(false),            // check_uppercase_func_impl end flag
-        ValueWithBool::Text("".to_string()),   // check_uppercase_func_impl tmp
+        ValueWithBool::Text("".to_string()),   // tmp
         ValueWithBool::Text({
             // check_unicode_func ascii data
             let mut s = String::new();
@@ -28,9 +28,10 @@ pub fn to_utf8_generator(target_ctx: &mut ProjectZip) {
         ValueWithBool::Number(Number::Int(0)), // check_unicode_func 二分探索法用 min
         ValueWithBool::Number(Number::Int(0)), // check_unicode_func 二分探索法用 max
     ];
-    let offset = list_init_data.len() as i32;
 
-    check_unicode_func_generator(target_ctx);
+    check_unicode_func_generator(target_ctx, &mut list_init_data);
+
+    let offset = list_init_data.len() as i32;
 
     check_uppercase_func_generator(target_ctx, offset, &mut list_init_data);
 

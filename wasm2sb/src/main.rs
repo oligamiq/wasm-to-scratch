@@ -52,8 +52,8 @@ fn main() -> Result<()> {
     println!("{}", "module optimized successfully!".green().bold());
     check_rm_import_fn(&module)?;
 
-    log::info!("module: {:#?}", module.imports);
-    log::info!("module: {:#?}", module.exports);
+    // log::info!("module: {:#?}", module.imports);
+    // log::info!("module: {:#?}", module.exports);
 
     let function_types = &module.types;
 
@@ -62,42 +62,42 @@ fn main() -> Result<()> {
 
     scratch::block::to_utf8::generator::to_utf8_generator(&mut project);
 
-    for function in module.funcs.iter() {
-        // println!("{:?}", function.idx);
-        // println!("{:?}", function.start);
+    // for function in module.funcs.iter() {
+    //     // println!("{:?}", function.idx);
+    //     // println!("{:?}", function.start);
 
-        let func_type = get_type_from_func(&function, function_types);
-        // println!("function: {:?}", function);
-        // println!("func_type: {:?}", func_type);
+    //     let func_type = get_type_from_func(&function, function_types);
+    //     // println!("function: {:?}", function);
+    //     // println!("func_type: {:?}", func_type);
 
-        match &function.kind {
-            walrus::FunctionKind::Import(import) => {
-                println!("import {:?}", function.id());
-                println!("{:?}", import);
-            }
-            walrus::FunctionKind::Local(_locals) => {
-                println!("local {:?}", function.id());
-                // println!("{:?}", locals);
-                println!("{:?}", func_type);
-                println!("");
-            }
-            walrus::FunctionKind::Uninitialized(_) => todo!(),
-        };
+    //     match &function.kind {
+    //         walrus::FunctionKind::Import(import) => {
+    //             println!("import {:?}", function.id());
+    //             println!("{:?}", import);
+    //         }
+    //         walrus::FunctionKind::Local(_locals) => {
+    //             println!("local {:?}", function.id());
+    //             // println!("{:?}", locals);
+    //             println!("{:?}", func_type);
+    //             println!("");
+    //         }
+    //         walrus::FunctionKind::Uninitialized(_) => todo!(),
+    //     };
 
-        let stack_builders = project.generate_func_block(function, func_type, &mut ctx);
-        project.add_stack_builders(stack_builders);
+    //     let stack_builders = project.generate_func_block(function, func_type, &mut ctx);
+    //     project.add_stack_builders(stack_builders);
 
-        // println!("{}", serde_json::to_string(&blocks).unwrap());
+    //     // println!("{}", serde_json::to_string(&blocks).unwrap());
 
-        // println!("func: {:#?}", function);
+    //     // println!("func: {:#?}", function);
 
-        // if i == 1 {
-        //     break;
-        // }
-    }
+    //     // if i == 1 {
+    //     //     break;
+    //     // }
+    // }
 
-    let stack_builders = generate_buddy_block(&mut project, 16, 4)?;
-    project.add_stack_builders(stack_builders);
+    // let stack_builders = generate_buddy_block(&mut project, 16, 4)?;
+    // project.add_stack_builders(stack_builders);
 
     println!("{}", "project building!".green().bold());
 

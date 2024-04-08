@@ -56,17 +56,17 @@ impl ProjectZip {
         func_type.insert(0, CustomBlockInputType::Text(name.clone()));
         self.define_custom_block(func_type, true);
 
-        let mut inner_builder = define_custom_block(name);
-        ctx.update_func_block();
+        // let mut inner_builder = define_custom_block(name);
+        // ctx.update_func_block();
 
-        inner_builder = inner_builder.next(replace_in_list(
-            BlockFieldBuilder::new("__wasm_function_stack".into()),
-            BlockInputBuilder::value(BlockInputValue::Integer { value: 1.into() }),
-            BlockInputBuilder::value(BlockInputValue::String {
-                value: "Hello world".to_owned().into(),
-            }),
-        ));
+        // inner_builder = inner_builder.next(replace_in_list(
+        //     BlockFieldBuilder::new("__wasm_function_stack".into()),
+        //     BlockInputBuilder::value(BlockInputValue::Integer { value: 1.into() }),
+        //     BlockInputBuilder::value(BlockInputValue::String {
+        //         value: "Hello world".to_owned().into(),
+        //     }),
+        // ));
 
-        vec![inner_builder]
+        vec![]
     }
 }

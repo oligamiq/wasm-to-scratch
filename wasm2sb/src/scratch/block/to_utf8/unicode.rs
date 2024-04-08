@@ -41,9 +41,9 @@ pub fn all_unicode_upper_letter_case(
                 // if upper.chars().count() == 1 && upper.chars().next().unwrap() != c {
                 //     println!("alert: {} -> {} -> {}", c, lower, upper.chars().next().unwrap());
                 // }
-                if !c.is_uppercase() {
-                    println!("is_uppercase: alert: {}, lower: {}", c, lower);
-                }
+                // if !c.is_uppercase() {
+                //     println!("is_uppercase: alert: {}, lower: {}", c, lower);
+                // }
                 return Some((lower as u32, lower, c));
             } else {
                 return None;
@@ -91,7 +91,7 @@ pub fn all_unicode_upper_letter_case_range() -> Vec<((u32, u32), u32)> {
 
     chars.sort_by(|a, b| a.0.cmp(&b.0));
 
-    println!("len: {:?}", chars.len());
+    // println!("len: {:?}", chars.len());
 
     let mut s: Vec<((u32, u32), u32)> = Vec::new();
     let mut first = 0;

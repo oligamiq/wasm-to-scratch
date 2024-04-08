@@ -1,4 +1,3 @@
-use crate::scratch::block::to_utf8::unicode::all_unicode_upper_letter_case_range;
 use crate::scratch::sb3::ProjectZip;
 
 use super::{unicode::all_unicode_upper_letter_case, PRE_UNICODE};
@@ -20,10 +19,10 @@ pub fn check_uppercase_func_generator(
 
     let unicodes = all_unicode_upper_letter_case(feature_surrogate_pair);
 
-    for unicodes in &unicodes {
-        println!("{:?}", unicodes);
-    }
-    println!("{:?}", unicodes.len());
+    // for unicodes in &unicodes {
+    //     println!("{:?}", unicodes);
+    // }
+    // println!("{:?}", unicodes.len());
 
     list_init_data.extend(
         unicodes
@@ -216,12 +215,6 @@ pub fn check_uppercase_func_generator(
     ];
 
     ctx.add_stack_builder(check_uppercase_impl);
-
-    let ranges = all_unicode_upper_letter_case_range();
-    for range in &ranges {
-        println!("{:?}", range);
-    }
-    println!("len: {:?}", ranges.len());
 
     upper_case_data_list_name
 }

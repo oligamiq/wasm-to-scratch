@@ -14,8 +14,10 @@ pub fn test_project() -> Result<ProjectZip> {
     //     monitors: Default::default(),
     // };
     // let project_data_path = "scratch/default.sb3";
-    let project_data_path = "scratch/wasmの元.sb3";
-    let data = include_bytes!("../../../scratch/wasmの元.sb3");
+    // let project_data_path = "scratch/wasmの元.sb3";
+    // let data = include_bytes!("../../../scratch/wasmの元.sb3");
+    let project_data_path = "scratch/none.sb3";
+    let data = include_bytes!("../../../scratch/none.sb3");
     let project = ProjectZip::new_from_data(project_data_path.to_string(), data.to_vec())?;
 
     Ok(project)
