@@ -315,6 +315,12 @@ pub mod blocks_wrapper {
     pub use blocks::call_custom_block;
     redefine_input!(custom_block_var_string_number(name: String));
     redefine_input!(custom_block_var_boolean(name: String));
+    pub fn always_true() -> Bib {
+        Bib::stack(StackBuilder::start({
+        let b = sb_itchy::block::BlockNormalBuilder::new(sb_itchy::opcode::StandardOpCode::operator_not);
+        b
+    }))
+    }
 
     // Translate ========================================================================
     redefine_input!(translate_to(text: Bib, lang: String));

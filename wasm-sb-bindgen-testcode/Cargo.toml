@@ -10,7 +10,10 @@ exclude = ["*.wasm"]
 
 [dependencies]
 wasm-sb-bindgen = { path = "../wasm-sb-bindgen" }
-wee_alloc = "0.4"
+
+[dependencies.wee_alloc]
+version = "0.4"
+default-features = false
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
