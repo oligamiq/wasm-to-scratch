@@ -226,6 +226,9 @@ impl ProjectZip {
         for costume_builder in costume_builders {
             costume.push(costume_builder.build(&mut self.res_buff));
         }
+
+        let res_buff = std::mem::take(&mut self.res_buff);
+        self.res_buff = res_buff.into_iter().map(|mut i| (i.generate_file_name(), i)).collect::<HashMap<_, _>>().into_iter().map(|(_, i)| i).collect::<Vec<_>>();
     }
 
     pub fn zip(&self) -> Result<Vec<u8>> {
